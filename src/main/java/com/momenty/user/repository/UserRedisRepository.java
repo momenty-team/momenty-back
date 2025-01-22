@@ -11,4 +11,10 @@ public interface UserRedisRepository extends Repository<UserTemporaryStatus, Str
     Optional<UserTemporaryStatus> findById(String email);
 
     void deleteById(String email);
+
+    //TODO: 에러 바꾸기
+    default UserTemporaryStatus getById(String email) {
+        return findById(email)
+                .orElseThrow(RuntimeException::new);
+    }
 }
