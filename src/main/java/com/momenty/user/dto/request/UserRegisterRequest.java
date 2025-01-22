@@ -1,9 +1,11 @@
 package com.momenty.user.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 @JsonNaming(SnakeCaseStrategy.class)
@@ -21,7 +23,8 @@ public record UserRegisterRequest(
         @NotBlank(message = "전화번호는 필수입니다.")
         String phoneNumber,
 
-        @NotBlank(message = "생일은 필수입니다.")
+        @NotNull(message = "생일은 필수입니다.")
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
         LocalDate birthDate,
 
         @Email(message = "이메일 형식이 올바르지 않습니다.")
