@@ -1,8 +1,13 @@
 package com.momenty.user.service;
 
+import static com.momenty.util.mail.Title.*;
+
+import com.momenty.user.domain.UserTemporaryStatus;
 import com.momenty.user.dto.request.UserRegisterRequest;
-import com.momenty.user.dto.response.UserRegisterResponse;
+import com.momenty.user.repository.UserRedisRepository;
+import com.momenty.util.mail.MailService;
 import jakarta.validation.Valid;
+import java.util.Random;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,17 +17,32 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class UserService {
 
+    private static final int CODE_LENGTH = 6;
+
+    private final UserRedisRepository userRedisRepository;
+    private final MailService mailService;
+
     @Transactional
-    public UserRegisterResponse register(
+    public void register(
             @Valid UserRegisterRequest userRegisterRequest
     ) {
         String email = userRegisterRequest.email();
-        /*
-        TODO
-         1. 인증번호 생성 후 레디스에 유저 정보와 함께 저장
-         2. 인증번호를 메일로 전송
-         3. 인증번호가 맞으면 레디스에서 제거 후 db에 저장 (다른 api)
-        */
-        return null;
+        String authenticationNumber = createCode(CODE_LENGTH);
+
+        UserTemporaryStatus userTemporaryStatus = UserTemporaryStatus.of(userRegisterRequest, authenticationNumber);
+        userRedisRepository.save(userTemporaryStatus);
+
+        mailService.sendEmail(email, REGISTER_TITLE.getContent(), authenticationNumber);
+    }
+
+    private String createCode(
+            int length
+    ) {
+        Random random = new Random();
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < length; i++) {
+            builder.append(random.nextInt(10));
+        }
+        return builder.toString();
     }
 }
