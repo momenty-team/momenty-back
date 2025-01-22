@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Getter
 @Builder
@@ -37,5 +38,17 @@ public class UserTemporaryStatus {
         return new UserTemporaryStatus(userRegisterRequest.email(), userRegisterRequest.name(),
                 userRegisterRequest.nickname(), userRegisterRequest.password(), userRegisterRequest.phoneNumber(),
                 userRegisterRequest.birthDate(), userRegisterRequest.profileImageUrl(), authenticationNumber);
+    }
+
+    public User toUser(PasswordEncoder passwordEncoder) {
+        return User.builder()
+                .name(name)
+                .password(passwordEncoder.encode(password))
+                .nickname(nickname)
+                .email(email)
+                .phoneNumber(phoneNumber)
+                .birthDate(birthDate)
+                .profileImageUrl(profileImageUrl)
+                .build();
     }
 }

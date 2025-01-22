@@ -12,6 +12,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
@@ -79,4 +80,23 @@ public class User {
 
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
+
+    @Builder
+    private User(
+            String name,
+            String password,
+            String nickname,
+            String phoneNumber,
+            String email,
+            LocalDate birthDate,
+            String profileImageUrl
+    ) {
+        this.name = name;
+        this.password = password;
+        this.nickname = nickname;
+        this.phoneNumber = phoneNumber;
+        this.email = email;
+        this.profileImageUrl = profileImageUrl;
+        this.birthDate = birthDate;
+    }
 }
