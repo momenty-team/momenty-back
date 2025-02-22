@@ -2,7 +2,6 @@ package com.momenty.user.controller;
 
 import com.momenty.user.dto.request.UserAuthenticationRequest;
 import com.momenty.user.dto.request.UserRegisterRequest;
-import com.momenty.user.dto.response.UserRegisterResponse;
 import com.momenty.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +19,8 @@ public class UserController {
 
     private final UserService userService;
 
-    @PostMapping("/register")
-    public ResponseEntity<Void> register (
+    @PostMapping("/register/general")
+    public ResponseEntity<Void> GeneralRegister (
             @Valid @RequestBody UserRegisterRequest userRegisterRequest
     ) {
         userService.register(userRegisterRequest);
@@ -35,4 +34,13 @@ public class UserController {
         userService.authenticate(authenticationRequest);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
+
+    //TODO: 애플 로그인 후 추가 정보 받는 회원가입 기능 만들기
+/*    @PostMapping("/register")
+    public ResponseEntity<Void> register (
+            @Valid @RequestBody UserRegisterRequest userRegisterRequest
+    ) {
+        userService.register(userRegisterRequest);
+        return ResponseEntity.ok().build();
+    }*/
 }

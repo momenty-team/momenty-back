@@ -1,0 +1,50 @@
+package com.momenty.global.auth.oauth.apple.controller;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.momenty.global.auth.oauth.apple.dto.AppleAuthRequest;
+import com.momenty.global.auth.oauth.apple.dto.AppleAuthResponse;
+import com.momenty.global.auth.oauth.apple.service.AppleAuthService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@Slf4j
+@RestController
+@RequestMapping("/auth/apple")
+@RequiredArgsConstructor
+public class AppleAuthController {
+
+    private final AppleAuthService appleAuthService;
+
+    @PostMapping("/callback")
+    public ResponseEntity<?> handleAppleCallback(
+            @RequestBody AppleAuthRequest appleAuthRequest,
+            HttpServletResponse response
+    ) throws NoSuchAlgorithmException, InvalidKeySpecException, JsonProcessingException {
+
+        AppleAuthResponse authResponse = appleAuthService.processAppleAuth(appleAuthRequest);
+
+        Cookie accessTokenCookie = new Cookie("accessToken", authResponse.accessToken());
+        accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge(60 * 60); // 1시간
+
+        Cookie refreshTokenCookie = new Cookie("refreshToken", authResponse.refreshToken());
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(60 * 60 * 24 * 14); // 14일
+
+        response.addCookie(accessTokenCookie);
+        response.addCookie(refreshTokenCookie);
+
+        return ResponseEntity.ok(authResponse.user());
+    }
+}
