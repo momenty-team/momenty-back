@@ -43,6 +43,13 @@ public class UserService {
         mailService.sendEmail(email, REGISTER_TITLE.getContent(), authenticationNumber);
     }
 
+    @Transactional
+    public void register(
+            User userInfo
+    ) {
+        userRepository.save(userInfo);
+    }
+
     private String createCode(
             int length
     ) {
