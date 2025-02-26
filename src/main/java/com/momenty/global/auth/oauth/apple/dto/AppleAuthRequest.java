@@ -10,31 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AppleAuthRequest {
-    private Authorization authorization;
-    private AuthorizedData authorizedData;
-    private boolean consentRequired;
-    private boolean enableSignInWithAppleNewFirstTimeRunScreen;
-    private int consentVersion;
-    private boolean reAuthorization;
-
-    @Getter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class Authorization {
-        @JsonProperty("id_token")
-        private String idToken;
-
-        @JsonProperty("grant_code")
-        private String grantCode;
-
-        private List<String> scope;
-    }
-
-    @Getter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class AuthorizedData {
-        private String userId;
-    }
+    private String state;
+    private String code;
+    private String id_token;
 }
 
