@@ -23,13 +23,15 @@ public class AppleAuthController {
 
     private final AppleAuthService appleAuthService;
 
-    @PostMapping(value = "/callback", consumes = "application/x-www-form-urlencoded")
+    @PostMapping(value = "/callback", consumes = {"application/x-www-form-urlencoded", "application/json"})
     public ResponseEntity<?> handleAppleCallback(
             @RequestParam("state") String state,
             @RequestParam("code") String code,
             @RequestParam("id_token") String idToken,
             HttpServletResponse response
     ) throws NoSuchAlgorithmException, InvalidKeySpecException, JsonProcessingException {
+
+        log.info("Apple Callback 호출됨: state={}, code={}, id_token={}", state, code, idToken);
 
         AppleAuthResponse authResponse = appleAuthService.processAppleAuth(code, idToken);
 
