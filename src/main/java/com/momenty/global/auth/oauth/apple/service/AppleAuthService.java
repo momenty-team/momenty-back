@@ -45,8 +45,8 @@ public class AppleAuthService {
     public AppleAuthResponse processAppleAuth(AppleAuthRequest appleAuthRequest)
             throws NoSuchAlgorithmException, InvalidKeySpecException, JsonProcessingException {
 
-        String idToken = appleAuthRequest.getAuthorization().getIdToken();
-        String code = appleAuthRequest.getAuthorization().getGrantCode();
+        String idToken = appleAuthRequest.getId_token();
+        String code = appleAuthRequest.getCode();
 
         if (!validateIdToken(idToken)) {
             throw new IllegalArgumentException("Invalid ID Token");
@@ -98,7 +98,7 @@ public class AppleAuthService {
 
     private AppleTokenResponse requestAppleToken(String code) {
         MultiValueMap<String, String> request = new LinkedMultiValueMap<>();
-        request.add("client_id", appleAuthProperty.getAud());  // Apple Client ID
+        request.add("client_id", appleAuthProperty.getAud());
         request.add("client_secret", generateClientSecret());
         request.add("code", code);
         request.add("grant_type", "authorization_code");
