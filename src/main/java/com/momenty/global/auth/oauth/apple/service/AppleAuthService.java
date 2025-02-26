@@ -9,7 +9,6 @@ import com.momenty.global.auth.jwt.service.JwtService;
 import com.momenty.global.auth.oauth.apple.controller.AppleClient;
 import com.momenty.global.auth.oauth.apple.domain.AppleAuthProperty;
 import com.momenty.global.auth.oauth.apple.domain.AppleUser;
-import com.momenty.global.auth.oauth.apple.dto.AppleAuthRequest;
 import com.momenty.global.auth.oauth.apple.dto.AppleAuthResponse;
 import com.momenty.global.auth.oauth.apple.dto.AppleTokenResponse;
 import com.momenty.global.auth.oauth.apple.repository.AppleUserRepository;
@@ -42,11 +41,8 @@ public class AppleAuthService {
     private final AppleUserRepository appleUserRepository;
 
     @Transactional
-    public AppleAuthResponse processAppleAuth(AppleAuthRequest appleAuthRequest)
+    public AppleAuthResponse processAppleAuth(String code, String idToken)
             throws NoSuchAlgorithmException, InvalidKeySpecException, JsonProcessingException {
-
-        String idToken = appleAuthRequest.getId_token();
-        String code = appleAuthRequest.getCode();
 
         if (!validateIdToken(idToken)) {
             throw new IllegalArgumentException("Invalid ID Token");
