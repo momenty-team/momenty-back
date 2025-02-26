@@ -9,6 +9,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,11 +24,11 @@ public class AppleAuthController {
 
     private final AppleAuthService appleAuthService;
 
-    @PostMapping(value = "/callback", consumes = {"application/x-www-form-urlencoded", "application/json"})
+    @PostMapping(value = "/callback", consumes = MediaType.ALL_VALUE)
     public ResponseEntity<?> handleAppleCallback(
-            @RequestParam("state") String state,
-            @RequestParam("code") String code,
-            @RequestParam("id_token") String idToken,
+            @RequestParam(value = "state", required = false) String state,
+            @RequestParam(value = "code", required = false) String code,
+            @RequestParam(value = "id_token", required = false) String idToken,
             HttpServletResponse response
     ) throws NoSuchAlgorithmException, InvalidKeySpecException, JsonProcessingException {
 
