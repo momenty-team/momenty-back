@@ -23,7 +23,7 @@ public class AppleAuthController {
 
     private final AppleAuthService appleAuthService;
 
-    @PostMapping("/callback")
+    @PostMapping(value = "/callback", consumes = "application/x-www-form-urlencoded")
     public ResponseEntity<?> handleAppleCallback(
             @RequestParam("state") String state,
             @RequestParam("code") String code,
