@@ -1,7 +1,6 @@
 package com.momenty.global.auth.oauth.apple.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.momenty.global.auth.oauth.apple.dto.AppleAuthRequest;
 import com.momenty.global.auth.oauth.apple.dto.AppleAuthResponse;
 import com.momenty.global.auth.oauth.apple.service.AppleAuthService;
 import jakarta.servlet.http.Cookie;
@@ -12,8 +11,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
@@ -26,11 +25,13 @@ public class AppleAuthController {
 
     @PostMapping("/callback")
     public ResponseEntity<?> handleAppleCallback(
-            @RequestBody AppleAuthRequest appleAuthRequest,
+            @RequestParam("state") String state,
+            @RequestParam("code") String code,
+            @RequestParam("id_token") String idToken,
             HttpServletResponse response
     ) throws NoSuchAlgorithmException, InvalidKeySpecException, JsonProcessingException {
 
-        AppleAuthResponse authResponse = appleAuthService.processAppleAuth(appleAuthRequest);
+        AppleAuthResponse authResponse = appleAuthService.processAppleAuth(code, idToken);
 
         Cookie accessTokenCookie = new Cookie("accessToken", authResponse.accessToken());
         accessTokenCookie.setHttpOnly(true);
