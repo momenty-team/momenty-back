@@ -16,6 +16,7 @@ import com.momenty.global.auth.oauth.apple.repository.AppleUserRepository;
 import com.momenty.global.auth.oauth.util.ClientSecret;
 import com.momenty.user.domain.User;
 import com.momenty.user.service.UserService;
+import io.jsonwebtoken.Claims;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
@@ -44,8 +45,8 @@ public class AppleAuthService {
     public AppleAuthResponse processAppleAuth(AppleAuthRequest appleAuthRequest)
             throws NoSuchAlgorithmException, InvalidKeySpecException, JsonProcessingException {
 
-        String idToken = appleAuthRequest.getIdentityToken();
-        String code = appleAuthRequest.getAuthorizationCode();
+        String idToken = appleAuthRequest.getAuthorization().getIdToken();
+        String code = appleAuthRequest.getAuthorization().getGrantCode();
 
         if (!validateIdToken(idToken)) {
             throw new IllegalArgumentException("Invalid ID Token");
@@ -55,7 +56,7 @@ public class AppleAuthService {
         String checkedIdToken = appleTokenResponse.idToken();
 
         String sub = getAppleAccountId(checkedIdToken);
-        String email = getEmail(appleAuthRequest);
+        String email = getEmailFromIdToken(checkedIdToken);
 
         AppleUser user = appleUserRepository.findBySub(sub).orElse(null);
         AppleUser appleUserInfo = AppleUser.builder()
@@ -72,7 +73,7 @@ public class AppleAuthService {
             appleUserRepository.save(appleUserInfo);
             User userInfo = User.builder()
                     .email(email)
-                    .name(getFullName(appleAuthRequest))
+                    .name(getFullName(checkedIdToken))
                     .build();
             userService.register(userInfo);
             return generateJwtAndReturnUser(appleUserInfo);
@@ -117,35 +118,37 @@ public class AppleAuthService {
     }
 
     private String getAppleAccountId(String identityToken)
+            throws NoSuchAlgorithmException, InvalidKeySpecException, JsonProcessingException {
+        return decodeIdToken(identityToken).getSubject();
+    }
+
+    private Claims decodeIdToken(String idToken)
             throws JsonProcessingException, NoSuchAlgorithmException, InvalidKeySpecException {
         PublicKey publicKey = applePublicKeyGenerator.generatePublicKey(
-                jwtUtil.parseHeaders(identityToken),
+                jwtUtil.parseHeaders(idToken),
                 appleClient.getAppleAuthPublicKey()
         );
 
-        return jwtUtil.getTokenClaims(identityToken, publicKey).getSubject();
+        return jwtUtil.getTokenClaims(idToken, publicKey);
     }
 
-    private String getFullName(AppleAuthRequest appleAuthRequest) {
-        AppleAuthRequest.AppleUserRequest user = appleAuthRequest.getUser();
-        if (user != null && user.getName() != null) {
-            AppleAuthRequest.AppleName name = user.getName();
-            String firstName = name.getFirstName();
-            String lastName = name.getLastName();
+    private String getFullName(String idToken)
+            throws NoSuchAlgorithmException, InvalidKeySpecException, JsonProcessingException {
+        Claims claims = decodeIdToken(idToken);
 
-            firstName = (firstName != null) ? firstName : "";
-            lastName = (lastName != null) ? lastName : "";
+        String firstName = (String) claims.get("firstName");
+        String lastName = (String) claims.get("lastName");
 
-            return firstName + lastName;
-        }
-        return "";
+        firstName = (firstName != null) ? firstName : "";
+        lastName = (lastName != null) ? lastName : "";
+
+        return firstName + " " + lastName;
     }
 
-    public String getEmail(AppleAuthRequest appleAuthRequest) {
-        if (appleAuthRequest != null && appleAuthRequest.getUser() != null) {
-            return appleAuthRequest.getUser().getEmail();
-        }
-        return "";
+    public String getEmailFromIdToken(String idToken)
+            throws NoSuchAlgorithmException, InvalidKeySpecException, JsonProcessingException {
+        Claims claims = decodeIdToken(idToken);
+        return claims.get("email", String.class);
     }
 
 
