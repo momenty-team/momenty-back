@@ -34,7 +34,7 @@ public class ClientSecret {
             JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
                     .issuer(teamId)
                     .subject(clientId)
-                    .audience(iss)
+                    .audience("https://appleid.apple.com")
                     .issueTime(issueTime)
                     .expirationTime(expirationTime)
                     .build();
