@@ -26,7 +26,7 @@ public class AppleAuthController {
 
     @PostMapping(
             value = "/callback",
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            consumes = {"application/x-www-form-urlencoded", "application/x-www-form-urlencoded;charset=UTF-8"},
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<?> handleAppleCallback(
