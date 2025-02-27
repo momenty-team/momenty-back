@@ -27,7 +27,7 @@ public class ClientSecret {
             Date issueTime = new Date(now * 1000);
             Date expirationTime = new Date((now + 15777000) * 1000); // 6개월 유효
 
-            JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256)
+            JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.RS256)
                     .keyID(keyId)
                     .build();
 
@@ -64,7 +64,7 @@ public class ClientSecret {
 
         byte[] decodedKey = Base64.getDecoder().decode(keyString);
         PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(decodedKey);
-        KeyFactory keyFactory = KeyFactory.getInstance("EC");
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         return keyFactory.generatePrivate(spec);
     }
 
