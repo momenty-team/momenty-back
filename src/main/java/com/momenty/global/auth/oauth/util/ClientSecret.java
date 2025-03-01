@@ -3,10 +3,12 @@ package com.momenty.global.auth.oauth.util;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import java.security.interfaces.ECPrivateKey;
+import java.security.interfaces.RSAPrivateCrtKey;
 import java.util.Date;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -34,14 +36,14 @@ public class ClientSecret {
             JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
                     .issuer(teamId)
                     .subject(clientId)
-                    .audience("https://appleid.apple.com")
+                    .audience(iss)
                     .issueTime(issueTime)
                     .expirationTime(expirationTime)
                     .build();
 
             SignedJWT signedJWT = new SignedJWT(header, claimsSet);
             PrivateKey privateKey = loadPrivateKey(keyPath);
-            JWSSigner signer = new ECDSASigner((ECPrivateKey) privateKey);
+            JWSSigner signer = new RSASSASigner((RSAPrivateCrtKey) privateKey);
             signedJWT.sign(signer);
 
             return signedJWT.serialize();
@@ -51,21 +53,15 @@ public class ClientSecret {
     }
 
     private static PrivateKey loadPrivateKey(String keyPath) throws Exception {
-        InputStream inputStream = ClientSecret.class.getClassLoader().getResourceAsStream(keyPath);
-        if (inputStream == null) {
-            throw new FileNotFoundException("Private key file not found: " + keyPath);
-        }
-
-        byte[] keyBytes = inputStream.readAllBytes();
-        String keyString = new String(keyBytes, StandardCharsets.UTF_8)
-                .replace("-----BEGIN PRIVATE KEY-----", "")
+        String privateKeyPem = new String(java.nio.file.Files.readAllBytes(new File(keyPath).toPath()));
+        privateKeyPem = privateKeyPem.replace("-----BEGIN PRIVATE KEY-----", "")
                 .replace("-----END PRIVATE KEY-----", "")
-                .replaceAll("\\s", "");
+                .replaceAll("\\s+", "");
 
-        byte[] decodedKey = Base64.getDecoder().decode(keyString);
-        PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(decodedKey);
+        byte[] keyBytes = Base64.getDecoder().decode(privateKeyPem);
+        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-        return keyFactory.generatePrivate(spec);
+        return keyFactory.generatePrivate(keySpec);
     }
 
 }
