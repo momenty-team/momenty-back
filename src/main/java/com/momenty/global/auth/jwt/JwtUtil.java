@@ -8,6 +8,7 @@ import io.jsonwebtoken.Jwts;
 import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -22,7 +23,7 @@ public class JwtUtil {
     }
 
     public String decodeHeader(String token) {
-        return new String(Base64.getDecoder().decode(token), StandardCharsets.UTF_8);
+        return new String(Base64.getUrlDecoder().decode(token), StandardCharsets.UTF_8);
     }
 
     public Claims getTokenClaims(String token, PublicKey publicKey) {
@@ -36,12 +37,17 @@ public class JwtUtil {
         if (!claims.getIssuer().equals(expectedIssuer)) {
             return false; // Issuer 검증 실패
         }
-        if (!claims.getAudience().equals(expectedAudience)) {
-            return false; // Audience 검증 실패
+        Object audClaim = claims.get("aud");
+        if (audClaim instanceof String) {
+            if (!audClaim.equals(expectedAudience)) {
+                return false; // Audience 검증 실패
+            }
+        } else if (audClaim instanceof List) {
+            if (!((List<?>) audClaim).contains(expectedAudience)) {
+                return false; // Audience 리스트 내 포함 여부 확인
+            }
         }
-        if (claims.getExpiration().before(new java.util.Date())) {
-            return false; // 토큰 만료 검증 실패
-        }
-        return true;
+        return !claims.getExpiration().before(new java.util.Date()); // 토큰 만료 검증 실패
     }
+
 }
