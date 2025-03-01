@@ -1,7 +1,5 @@
 package com.momenty.global.auth.jwt;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -48,25 +46,10 @@ public class JwtTokenProvider {
 
         return Jwts.builder()
                 .setClaims(claims)
+                .setSubject(userId)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
-    }
-
-    public boolean validateToken(String token) {
-        try {
-            Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token);
-            return true;
-        } catch (JwtException e) {
-            log.error("Invalid JWT token: {}", e.getMessage());
-            return false;
-        }
-    }
-
-    public String getUserIdFromToken(String token) {
-        Claims claims = Jwts.parserBuilder().setSigningKey(secretKey).build()
-                .parseClaimsJws(token).getBody();
-        return claims.get("userId", String.class);
     }
 }
