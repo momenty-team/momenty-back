@@ -11,6 +11,7 @@ import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.RSAPrivateCrtKey;
 import java.util.Date;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
@@ -52,16 +53,20 @@ public class ClientSecret {
         }
     }
 
-    private static PrivateKey loadPrivateKey(String keyPath) throws Exception {
-        String privateKeyPem = new String(java.nio.file.Files.readAllBytes(new File(keyPath).toPath()));
-        privateKeyPem = privateKeyPem.replace("-----BEGIN PRIVATE KEY-----", "")
-                .replace("-----END PRIVATE KEY-----", "")
-                .replaceAll("\\s+", "");
+    public static PrivateKey loadPrivateKey(String keyPath) throws Exception {
+        ClassPathResource resource = new ClassPathResource(keyPath);
 
-        byte[] keyBytes = Base64.getDecoder().decode(privateKeyPem);
-        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-        return keyFactory.generatePrivate(keySpec);
+        try (InputStream inputStream = resource.getInputStream()) {
+            String privateKeyPem = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+            privateKeyPem = privateKeyPem.replace("-----BEGIN PRIVATE KEY-----", "")
+                    .replace("-----END PRIVATE KEY-----", "")
+                    .replaceAll("\\s+", "");
+
+            byte[] keyBytes = Base64.getDecoder().decode(privateKeyPem);
+            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            return keyFactory.generatePrivate(keySpec);
+        }
     }
 
 }
