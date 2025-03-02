@@ -28,31 +28,25 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @NotNull
     @Size(max = 100)
     @Column(name = "name", length = 50)
     private String name;
 
-    @NotNull
     @Size(max = 50)
     @Column(name = "nickname", length = 50, unique = true)
     private String nickname;
 
-    @NotNull
     @Size(max = 255)
     @Column(name = "password", nullable = false)
     private String password;
 
-    @NotNull
     @Size(max = 15)
     @Column(name = "phone_number", length = 20)
     private String phoneNumber;
 
-    @NotNull
     @Column(name = "birth_date", nullable = false)
     private LocalDate birthDate;
 
-    @NotNull
     @Size(max = 255)
     @Column(name = "email", length = 100)
     private String email;
