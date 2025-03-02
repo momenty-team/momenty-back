@@ -22,8 +22,6 @@ import java.security.spec.InvalidKeySpecException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
 @Service
 @RequiredArgsConstructor
@@ -93,14 +91,13 @@ public class AppleAuthService {
     }
 
     private AppleTokenResponse requestAppleToken(String code) {
-        MultiValueMap<String, String> request = new LinkedMultiValueMap<>();
-        request.add("client_id", appleAuthProperty.getAud());
-        request.add("client_secret", generateClientSecret());
-        request.add("code", code);
-        request.add("grant_type", "authorization_code");
-        request.add("redirect_uri", appleAuthProperty.getRedirectUri());
-
-        return appleClient.getAppleToken(request);
+        return appleClient.getAppleToken(
+                appleAuthProperty.getAud(),
+                appleAuthProperty.getRedirectUri(),
+                code,
+                generateClientSecret(),
+                "authorization_code"
+        );
     }
 
     private String generateClientSecret() {

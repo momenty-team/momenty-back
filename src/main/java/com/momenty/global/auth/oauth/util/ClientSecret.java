@@ -42,7 +42,8 @@ public class ClientSecret {
 
             SignedJWT signedJWT = new SignedJWT(header, claimsSet);
             PrivateKey privateKey = loadPrivateKey(keyPath);
-            JWSSigner signer = new ECDSASigner((ECPrivateKey) privateKey);
+            ECPrivateKey ecPrivateKey = (ECPrivateKey) privateKey;
+            JWSSigner signer = new ECDSASigner((ECPrivateKey) ecPrivateKey.getS());
             signedJWT.sign(signer);
 
             return signedJWT.serialize();
