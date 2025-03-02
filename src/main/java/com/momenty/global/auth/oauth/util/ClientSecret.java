@@ -3,12 +3,10 @@ package com.momenty.global.auth.oauth.util;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
-import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import java.security.interfaces.ECPrivateKey;
-import java.security.interfaces.RSAPrivateCrtKey;
 import java.util.Date;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ClassPathResource;
@@ -30,7 +28,7 @@ public class ClientSecret {
             Date issueTime = new Date(now * 1000);
             Date expirationTime = new Date((now + 15777000) * 1000); // 6개월 유효
 
-            JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.RS256)
+            JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256)
                     .keyID(keyId)
                     .build();
 
@@ -44,7 +42,7 @@ public class ClientSecret {
 
             SignedJWT signedJWT = new SignedJWT(header, claimsSet);
             PrivateKey privateKey = loadPrivateKey(keyPath);
-            JWSSigner signer = new RSASSASigner((RSAPrivateCrtKey) privateKey);
+            JWSSigner signer = new ECDSASigner((ECPrivateKey) privateKey);
             signedJWT.sign(signer);
 
             return signedJWT.serialize();
