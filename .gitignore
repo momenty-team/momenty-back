@@ -208,3 +208,4 @@ gradle-app.setting
 *.properties
 gradle/
 application.yml
+.DS_Store
