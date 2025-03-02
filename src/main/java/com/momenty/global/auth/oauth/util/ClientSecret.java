@@ -58,13 +58,16 @@ public class ClientSecret {
 
         try (InputStream inputStream = resource.getInputStream()) {
             String privateKeyPem = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-            privateKeyPem = privateKeyPem.replace("-----BEGIN PRIVATE KEY-----", "")
+
+            privateKeyPem = privateKeyPem
+                    .replace("-----BEGIN PRIVATE KEY-----", "")
                     .replace("-----END PRIVATE KEY-----", "")
                     .replaceAll("\\s+", "");
 
             byte[] keyBytes = Base64.getDecoder().decode(privateKeyPem);
+
             PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
-            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            KeyFactory keyFactory = KeyFactory.getInstance("EC");
             return keyFactory.generatePrivate(keySpec);
         }
     }
