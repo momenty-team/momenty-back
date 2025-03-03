@@ -1,4 +1,4 @@
-package com.momenty.config.common;
+package com.momenty.global.config.common;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
