@@ -2,6 +2,7 @@ package com.momenty.global.auth.oauth.apple.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.momenty.global.auth.oauth.apple.dto.AppleAuthResponse;
+import com.momenty.global.auth.oauth.apple.dto.AppleLoginResponse;
 import com.momenty.global.auth.oauth.apple.service.AppleAuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,7 +30,7 @@ public class AppleAuthController {
             consumes = {"application/x-www-form-urlencoded", "application/x-www-form-urlencoded;charset=UTF-8"},
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<?> handleAppleCallback(
+    public ResponseEntity<AppleLoginResponse> handleAppleCallback(
             @RequestParam(value = "state", required = false) String state,
             @RequestParam(value = "code", required = false) String code,
             @RequestParam(value = "id_token", required = false) String idToken,
@@ -40,12 +41,12 @@ public class AppleAuthController {
 
         AppleAuthResponse authResponse = appleAuthService.processAppleAuth(code, idToken);
 
-        Cookie accessTokenCookie = new Cookie("accessToken", authResponse.accessToken());
+        Cookie accessTokenCookie = new Cookie("access_token", authResponse.accessToken());
         accessTokenCookie.setHttpOnly(true);
         accessTokenCookie.setPath("/");
         accessTokenCookie.setMaxAge(60 * 60); // 1시간
 
-        Cookie refreshTokenCookie = new Cookie("refreshToken", authResponse.refreshToken());
+        Cookie refreshTokenCookie = new Cookie("refresh_token", authResponse.refreshToken());
         refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setPath("/");
         refreshTokenCookie.setMaxAge(60 * 60 * 24 * 14); // 14일
@@ -53,6 +54,6 @@ public class AppleAuthController {
         response.addCookie(accessTokenCookie);
         response.addCookie(refreshTokenCookie);
 
-        return ResponseEntity.ok(authResponse.user());
+        return ResponseEntity.ok(AppleLoginResponse.of(authResponse.user()));
     }
 }
