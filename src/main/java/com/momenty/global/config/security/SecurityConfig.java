@@ -28,7 +28,8 @@ public class SecurityConfig {
                 .cors(AbstractHttpConfigurer::disable)
                 // 요청 별 인가 설정
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/public/**").permitAll()
+                        .requestMatchers("/auth/apple/callback").permitAll()
+                        .requestMatchers("/token/access-token").permitAll()
                         .anyRequest().authenticated()
                 )
                 // 폼 로그인 비활성화: 기본 formLogin을 사용하지 않음
