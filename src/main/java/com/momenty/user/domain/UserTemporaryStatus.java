@@ -1,7 +1,6 @@
 package com.momenty.user.domain;
 
 import com.momenty.user.dto.request.UserRegisterRequest;
-import jakarta.validation.Valid;
 import java.time.LocalDate;
 import lombok.Builder;
 import lombok.Getter;

@@ -3,7 +3,9 @@ package com.momenty.global.auth.oauth.apple.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.momenty.global.auth.jwt.JwtTokenProvider;
 import com.momenty.global.auth.jwt.JwtUtil;
+import com.momenty.global.auth.jwt.domain.AppleJwtStatus;
 import com.momenty.global.auth.jwt.domain.JwtStatus;
+import com.momenty.global.auth.jwt.repository.AppleJwtStatusRedisRepository;
 import com.momenty.global.auth.jwt.repository.JwtStatusRedisRepository;
 import com.momenty.global.auth.jwt.service.JwtService;
 import com.momenty.global.auth.oauth.apple.controller.AppleClient;
@@ -35,8 +37,9 @@ public class AppleAuthService {
     private final UserService userService;
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtService jwtService;
-    private final JwtStatusRedisRepository jwtStatusRedisRepository;
+    private final AppleJwtStatusRedisRepository appleJwtStatusRedisRepository;
     private final AppleUserRepository appleUserRepository;
+    private final JwtStatusRedisRepository jwtStatusRedisRepository;
 
     @Transactional
     public AppleAuthResponse processAppleAuth(String code, String idToken)
@@ -52,38 +55,50 @@ public class AppleAuthService {
         String sub = getAppleAccountId(checkedIdToken);
         String email = getEmailFromIdToken(checkedIdToken);
 
-        AppleUser user = appleUserRepository.findBySub(sub).orElse(null);
-        AppleUser appleUserInfo = AppleUser.builder()
-                .sub(sub)
-                .email(email)
-                .refreshToken(appleTokenResponse.refreshToken())
-                .build();
+        saveAppleToken(sub, appleTokenResponse);
 
-        if (user != null) {
-            return generateJwtAndReturnUser(appleUserInfo);
+        AppleUser appleUser = appleUserRepository.findBySub(sub).orElse(null);
+
+        if (appleUser != null) {
+            JwtStatus jwtStatus = generateJwt(appleUser.getId());
+            return new AppleAuthResponse(appleUser, jwtStatus.getAccessToken(), jwtStatus.getRefreshToken());
         }
 
         if (canRegisterUser(email)) {
+            AppleUser appleUserInfo = AppleUser.builder()
+                    .sub(sub)
+                    .email(email)
+                    .refreshToken(appleTokenResponse.refreshToken())
+                    .build();
             appleUserRepository.save(appleUserInfo);
+
             User userInfo = User.builder()
                     .email(email)
                     .name(getFullName(checkedIdToken))
                     .build();
             userService.register(userInfo);
-            return generateJwtAndReturnUser(appleUserInfo);
+            JwtStatus jwtStatus = generateJwt(userInfo.getId());
+            return new AppleAuthResponse(appleUserInfo, jwtStatus.getAccessToken(), jwtStatus.getRefreshToken());
         }
 
         throw new IllegalArgumentException("Email verification required");
     }
 
-    private AppleAuthResponse generateJwtAndReturnUser(AppleUser user) {
-        String accessToken = jwtTokenProvider.generateAccessToken(user.getSub());
-        String refreshToken = jwtTokenProvider.generateRefreshToken(user.getSub());
+    private void saveAppleToken(String sub, AppleTokenResponse appleTokenResponse) {
+        AppleJwtStatus appleJwtStatus = jwtService.createAppleJwtStatus(
+                sub,
+                appleTokenResponse.accessToken(),
+                appleTokenResponse.refreshToken()
+        );
+        appleJwtStatusRedisRepository.save(appleJwtStatus);
+    }
 
-        JwtStatus jwtStatus = jwtService.createJwtStatus(user.getSub(), accessToken, refreshToken);
-        jwtStatusRedisRepository.save(jwtStatus);
+    private JwtStatus generateJwt(Integer userId) {
+        String accessToken = jwtTokenProvider.generateAccessToken(String.valueOf(userId));
+        String refreshToken = jwtTokenProvider.generateRefreshToken(String.valueOf(userId));
 
-        return new AppleAuthResponse(user, accessToken, refreshToken);
+        JwtStatus jwtStatus = jwtService.createJwtStatus(userId, accessToken, refreshToken);
+        return jwtStatusRedisRepository.save(jwtStatus);
     }
 
     private boolean canRegisterUser(String email) {

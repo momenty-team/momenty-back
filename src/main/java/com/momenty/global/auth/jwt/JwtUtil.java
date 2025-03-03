@@ -35,19 +35,18 @@ public class JwtUtil {
     }
     public boolean validateIdToken(Claims claims, String expectedIssuer, String expectedAudience) {
         if (!claims.getIssuer().equals(expectedIssuer)) {
-            return false; // Issuer 검증 실패
+            return false;
         }
         Object audClaim = claims.get("aud");
         if (audClaim instanceof String) {
             if (!audClaim.equals(expectedAudience)) {
-                return false; // Audience 검증 실패
+                return false;
             }
         } else if (audClaim instanceof List) {
             if (!((List<?>) audClaim).contains(expectedAudience)) {
-                return false; // Audience 리스트 내 포함 여부 확인
+                return false;
             }
         }
         return !claims.getExpiration().before(new java.util.Date()); // 토큰 만료 검증 실패
     }
-
 }
