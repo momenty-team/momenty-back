@@ -1,18 +1,10 @@
 package com.momenty.user.service;
 
-import static com.momenty.util.mail.Title.*;
-
 import com.momenty.user.domain.User;
-import com.momenty.user.domain.UserTemporaryStatus;
-import com.momenty.user.dto.request.UserAuthenticationRequest;
 import com.momenty.user.dto.request.UserRegisterRequest;
-import com.momenty.user.dto.response.UserRegisterResponse;
 import com.momenty.user.repository.UserRedisRepository;
 import com.momenty.user.repository.UserRepository;
 import com.momenty.util.mail.MailService;
-import jakarta.validation.Valid;
-import java.util.Optional;
-import java.util.Random;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -30,7 +22,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @Transactional
+    /*@Transactional
     public void register(
             @Valid UserRegisterRequest userRegisterRequest
     ) {
@@ -43,13 +35,6 @@ public class UserService {
         mailService.sendEmail(email, REGISTER_TITLE.getContent(), authenticationNumber);
     }
 
-    @Transactional
-    public void register(
-            User userInfo
-    ) {
-        userRepository.save(userInfo);
-    }
-
     private String createCode(
             int length
     ) {
@@ -59,17 +44,22 @@ public class UserService {
             builder.append(random.nextInt(10));
         }
         return builder.toString();
+    }*/
+
+    @Transactional
+    public void register(
+            User userInfo
+    ) {
+        userRepository.save(userInfo);
     }
 
-    // TODO: 에러 바꾸기
     @Transactional
-    public void authenticate(@Valid UserAuthenticationRequest authenticationRequest) {
-        UserTemporaryStatus userTemporaryStatus = userRedisRepository.getById(authenticationRequest.email());
-        if (!authenticationRequest.authenticationNumber().equals(userTemporaryStatus.getAuthenticationNumber())) {
-            throw new RuntimeException();
-        }
-
-        userRedisRepository.deleteById(authenticationRequest.email());
-        userRepository.save(userTemporaryStatus.toUser(passwordEncoder));
+    public User register(
+            UserRegisterRequest userRegisterRequest,
+            Integer userId
+    ) {
+        userRepository.getById(userId);
+        User user = userRegisterRequest.toUser(passwordEncoder);
+        return userRepository.save(user);
     }
 }

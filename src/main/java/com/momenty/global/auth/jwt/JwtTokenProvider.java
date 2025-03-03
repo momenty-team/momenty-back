@@ -1,5 +1,8 @@
 package com.momenty.global.auth.jwt;
 
+import com.momenty.global.auth.jwt.domain.JwtStatus;
+import com.momenty.global.auth.jwt.repository.JwtStatusRedisRepository;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -19,14 +22,18 @@ public class JwtTokenProvider {
     private final long accessTokenExpiration;
     private final long refreshTokenExpiration;
 
+    private final JwtStatusRedisRepository jwtStatusRedisRepository;
+
     public JwtTokenProvider(
             @Value("${jwt.secret}") String secret,
             @Value("${jwt.access-token-expiration}") long accessTokenExpiration,
-            @Value("${jwt.refresh-token-expiration}") long refreshTokenExpiration
+            @Value("${jwt.refresh-token-expiration}") long refreshTokenExpiration,
+            JwtStatusRedisRepository jwtStatusRedisRepository
     ) {
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes());
         this.accessTokenExpiration = accessTokenExpiration * 1000; // 초 단위 -> 밀리초 변환
         this.refreshTokenExpiration = refreshTokenExpiration * 1000;
+        this.jwtStatusRedisRepository = jwtStatusRedisRepository;
     }
 
     public String generateAccessToken(String userId) {
@@ -51,5 +58,30 @@ public class JwtTokenProvider {
                 .setExpiration(expiryDate)
                 .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+    public String getUserIdFromToken(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(secretKey)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
+    }
+
+    public boolean validateToken(String token) {
+        try {
+            Jwts.parserBuilder()
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(token);
+
+            String userId = getUserIdFromToken(token);
+            JwtStatus jwtStatus = jwtStatusRedisRepository.getById(Integer.parseInt(userId));
+
+            return token.equals(jwtStatus.getAccessToken()) || token.equals(jwtStatus.getRefreshToken());
+        } catch (JwtException | NumberFormatException e) {
+            return false;
+        }
     }
 }

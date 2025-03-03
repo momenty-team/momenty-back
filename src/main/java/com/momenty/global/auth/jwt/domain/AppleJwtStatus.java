@@ -12,11 +12,11 @@ import org.springframework.data.redis.core.RedisHash;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@RedisHash(value = "jwtStatus", timeToLive = 1209600) // 14일 (1209600초)
-public class JwtStatus {
+@RedisHash(value = "appleJwtStatus", timeToLive = 1209600) // 14일 (1209600초)
+public class AppleJwtStatus {
 
     @Id
-    private Integer id;
+    private String sub;
 
     private String accessToken;
 

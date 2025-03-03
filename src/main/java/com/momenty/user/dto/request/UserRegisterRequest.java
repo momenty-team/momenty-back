@@ -3,14 +3,15 @@ package com.momenty.user.dto.request;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.momenty.user.domain.User;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @JsonNaming(SnakeCaseStrategy.class)
 public record UserRegisterRequest(
-
         @NotBlank(message = "이름은 필수입니다.")
         String name,
 
@@ -33,5 +34,15 @@ public record UserRegisterRequest(
 
         String profileImageUrl
 ) {
-
+    public User toUser(PasswordEncoder passwordEncoder) {
+        return User.builder()
+            .name(name)
+            .password(passwordEncoder.encode(password))
+            .nickname(nickname)
+            .email(email)
+            .phoneNumber(phoneNumber)
+            .birthDate(birthDate)
+            .profileImageUrl(profileImageUrl)
+            .build();
+    }
 }

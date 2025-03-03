@@ -25,4 +25,11 @@ public class GlobalExceptionHandler {
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(response);
     }
+
+    @ExceptionHandler({InvalidJwtTokenException.class, AuthenticationException.class, UserNotFoundException.class})
+    public ResponseEntity<Map<String, String>> handleInvalidJwtTokenException(Exception ex) {
+        Map<String, String> errorBody = new HashMap<>();
+        errorBody.put("error", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorBody);
+    }
 }
