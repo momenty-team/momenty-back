@@ -37,6 +37,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
 
         String requestURI = request.getRequestURI();
+        System.out.println("Request URI = " + requestURI);
 
         if (SKIP_PATHS.stream().anyMatch(requestURI::startsWith)) {
             filterChain.doFilter(request, response);
