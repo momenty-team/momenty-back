@@ -46,6 +46,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String accessToken = extractTokenFromCookie(request, "access_token");
 
+        System.out.println("access_tokne 값: " + accessToken);
+
         if (accessToken != null && tokenProvider.validateToken(accessToken)) {
             // Access token이 유효한 경우
             String userId = tokenProvider.getUserIdFromToken(accessToken);
