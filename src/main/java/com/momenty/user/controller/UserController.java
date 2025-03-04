@@ -1,10 +1,13 @@
 package com.momenty.user.controller;
 
 import com.momenty.global.annotation.UserId;
+import com.momenty.global.auth.jwt.domain.JwtStatus;
 import com.momenty.user.domain.User;
 import com.momenty.user.dto.request.UserRegisterRequest;
 import com.momenty.user.dto.response.UserRegisterResponse;
 import com.momenty.user.service.UserService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,22 +24,26 @@ public class UserController {
 
     private final UserService userService;
 
-    // 일반 회원가입
-/*    @PostMapping("/register/general")
+    @PostMapping("/register/general")
     public ResponseEntity<Void> GeneralRegister (
-            @Valid @RequestBody UserRegisterRequest userRegisterRequest
+            @Valid @RequestBody UserRegisterRequest userRegisterRequest,
+            HttpServletResponse response
     ) {
-        userService.generalRegister(userRegisterRequest);
+        JwtStatus jwtStatus = userService.generalRegister(userRegisterRequest);
+        Cookie accessTokenCookie = new Cookie("access_token", jwtStatus.getAccessToken());
+        accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge(60 * 60); // 1시간
+
+        Cookie refreshTokenCookie = new Cookie("refresh_token", jwtStatus.getRefreshToken());
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(60 * 60 * 24 * 14); // 14일
+
+        response.addCookie(accessTokenCookie);
+        response.addCookie(refreshTokenCookie);
         return ResponseEntity.ok().build();
     }
-
-    @PostMapping("/authenticate")
-    public ResponseEntity<Void> authenticate (
-            @Valid @RequestBody UserAuthenticationRequest authenticationRequest
-    ) {
-        userService.authenticate(authenticationRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
-    }*/
 
 
     @PostMapping("/register")

@@ -1,5 +1,10 @@
 package com.momenty.user.service;
 
+import com.momenty.global.auth.jwt.JwtTokenProvider;
+import com.momenty.global.auth.jwt.domain.JwtStatus;
+import com.momenty.global.auth.jwt.repository.JwtStatusRedisRepository;
+import com.momenty.global.auth.jwt.service.JwtService;
+import com.momenty.global.auth.oauth.apple.dto.AppleAuthResponse;
 import com.momenty.user.domain.User;
 import com.momenty.user.dto.request.UserRegisterRequest;
 import com.momenty.user.repository.UserRedisRepository;
@@ -17,34 +22,20 @@ public class UserService {
 
     private static final int CODE_LENGTH = 6;
 
-    private final UserRedisRepository userRedisRepository;
-    private final MailService mailService;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final JwtService jwtService;
+    private final JwtStatusRedisRepository jwtStatusRedisRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    /*@Transactional
-    public void register(
-            @Valid UserRegisterRequest userRegisterRequest
+    @Transactional
+    public JwtStatus generalRegister(
+            UserRegisterRequest userRegisterRequest
     ) {
-        String email = userRegisterRequest.email();
-        String authenticationNumber = createCode(CODE_LENGTH);
-
-        UserTemporaryStatus userTemporaryStatus = UserTemporaryStatus.of(userRegisterRequest, authenticationNumber);
-        userRedisRepository.save(userTemporaryStatus);
-
-        mailService.sendEmail(email, REGISTER_TITLE.getContent(), authenticationNumber);
+        User user = userRegisterRequest.toUser(passwordEncoder);
+        User savedUser = userRepository.save(user);
+        return generateJwt(savedUser.getId());
     }
-
-    private String createCode(
-            int length
-    ) {
-        Random random = new Random();
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < length; i++) {
-            builder.append(random.nextInt(10));
-        }
-        return builder.toString();
-    }*/
 
     @Transactional
     public void register(
@@ -61,5 +52,13 @@ public class UserService {
         User existingUser = userRepository.getById(userId);
         userRegisterRequest.applyTo(existingUser, passwordEncoder);
         return existingUser;
+    }
+
+    private JwtStatus generateJwt(Integer userId) {
+        String accessToken = jwtTokenProvider.generateAccessToken(String.valueOf(userId));
+        String refreshToken = jwtTokenProvider.generateRefreshToken(String.valueOf(userId));
+
+        JwtStatus jwtStatus = jwtService.createJwtStatus(userId, accessToken, refreshToken);
+        return jwtStatusRedisRepository.save(jwtStatus);
     }
 }

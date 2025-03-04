@@ -4,11 +4,12 @@ import static lombok.AccessLevel.*;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -55,6 +56,9 @@ public class User {
     @Column(name = "profile_image_url")
     private String profileImageUrl;
 
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
+
     @Column(name = "is_public", nullable = false)
     private boolean isPublic = false;
 
@@ -83,7 +87,8 @@ public class User {
             String phoneNumber,
             String email,
             LocalDate birthDate,
-            String profileImageUrl
+            String profileImageUrl,
+            Gender gender
     ) {
         this.name = name;
         this.password = password;
@@ -92,6 +97,7 @@ public class User {
         this.email = email;
         this.profileImageUrl = profileImageUrl;
         this.birthDate = birthDate;
+        this.gender = gender;
     }
 
     public void updateProfile(
@@ -101,7 +107,8 @@ public class User {
             String phoneNumber,
             LocalDate birthDate,
             String email,
-            String profileImageUrl
+            String profileImageUrl,
+            Gender gender
     ) {
         this.name = name;
         this.nickname = nickname;
@@ -110,5 +117,6 @@ public class User {
         this.birthDate = birthDate;
         this.email = email;
         this.profileImageUrl = profileImageUrl;
+        this.gender = gender;
     }
 }
