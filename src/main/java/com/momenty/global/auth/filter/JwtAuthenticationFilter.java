@@ -37,7 +37,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
 
         String requestURI = request.getRequestURI();
-        System.out.println("Request URI = " + requestURI);
 
         if (SKIP_PATHS.stream().anyMatch(requestURI::startsWith)) {
             filterChain.doFilter(request, response);
@@ -45,8 +44,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         String accessToken = extractTokenFromCookie(request, "access_token");
-
-        System.out.println("access_tokne 값: " + accessToken);
 
         if (accessToken != null && tokenProvider.validateToken(accessToken)) {
             // Access token이 유효한 경우
