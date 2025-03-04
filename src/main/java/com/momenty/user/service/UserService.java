@@ -58,8 +58,8 @@ public class UserService {
             UserRegisterRequest userRegisterRequest,
             Integer userId
     ) {
-        userRepository.getById(userId);
-        User user = userRegisterRequest.toUser(passwordEncoder);
-        return userRepository.save(user);
+        User existingUser = userRepository.getById(userId);
+        userRegisterRequest.applyTo(existingUser, passwordEncoder);
+        return existingUser;
     }
 }

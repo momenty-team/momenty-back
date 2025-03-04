@@ -93,4 +93,22 @@ public class User {
         this.profileImageUrl = profileImageUrl;
         this.birthDate = birthDate;
     }
+
+    public void updateProfile(
+            String name,
+            String nickname,
+            String encodedPassword,
+            String phoneNumber,
+            LocalDate birthDate,
+            String email,
+            String profileImageUrl
+    ) {
+        this.name = name;
+        this.nickname = nickname;
+        this.password = encodedPassword;
+        this.phoneNumber = phoneNumber;
+        this.birthDate = birthDate;
+        this.email = email;
+        this.profileImageUrl = profileImageUrl;
+    }
 }
