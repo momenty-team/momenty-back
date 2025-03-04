@@ -34,15 +34,15 @@ public record UserRegisterRequest(
 
         String profileImageUrl
 ) {
-    public User toUser(PasswordEncoder passwordEncoder) {
-        return User.builder()
-            .name(name)
-            .password(passwordEncoder.encode(password))
-            .nickname(nickname)
-            .email(email)
-            .phoneNumber(phoneNumber)
-            .birthDate(birthDate)
-            .profileImageUrl(profileImageUrl)
-            .build();
+    public void applyTo(User user, PasswordEncoder encoder) {
+        user.updateProfile(
+                this.name,
+                this.nickname,
+                encoder.encode(this.password),
+                this.phoneNumber,
+                this.birthDate,
+                this.email,
+                this.profileImageUrl
+        );
     }
 }
