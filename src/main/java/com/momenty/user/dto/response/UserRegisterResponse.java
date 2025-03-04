@@ -1,7 +1,6 @@
 package com.momenty.user.dto.response;
 
 import com.momenty.user.domain.User;
-import com.momenty.user.domain.UserTemporaryStatus;
 import java.time.LocalDate;
 
 public record UserRegisterResponse(
@@ -18,18 +17,15 @@ public record UserRegisterResponse(
 
         String email,
 
-        String profileImageUrl
+        String profileImageUrl,
+
+        String gender
 ) {
-
-    public static UserRegisterResponse of(UserTemporaryStatus userTemporaryStatus) {
-        return new UserRegisterResponse(userTemporaryStatus.getName(), userTemporaryStatus.getPassword(),
-                userTemporaryStatus.getNickname(), userTemporaryStatus.getEmail(), userTemporaryStatus.getBirthDate(),
-                userTemporaryStatus.getPhoneNumber(), userTemporaryStatus.getProfileImageUrl());
-    }
-
     public static UserRegisterResponse of(User user) {
-        return new UserRegisterResponse(user.getName(), user.getPassword(),
-                user.getNickname(), user.getEmail(), user.getBirthDate(),
-                user.getPhoneNumber(), user.getProfileImageUrl());
+        return new UserRegisterResponse(
+                user.getName(), user.getNickname(),
+                user.getPassword(), user.getPhoneNumber(),
+                user.getBirthDate(), user.getEmail(),
+                user.getProfileImageUrl(), user.getGender().name());
     }
 }
