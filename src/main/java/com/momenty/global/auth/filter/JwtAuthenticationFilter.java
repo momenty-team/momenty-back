@@ -90,6 +90,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception e) {
+            System.out.println("🚨 Handler lookup failed for request: " + request.getRequestURI());
             throw new AuthenticationException();
         }
         return null;
