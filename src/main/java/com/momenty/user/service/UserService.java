@@ -9,7 +9,9 @@ import com.momenty.global.auth.jwt.service.JwtService;
 import com.momenty.global.exception.GlobalException;
 import com.momenty.user.domain.User;
 import com.momenty.user.dto.request.UserRegisterRequest;
+import com.momenty.user.dto.request.UserUpdateRequest;
 import com.momenty.user.repository.UserRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,5 +65,16 @@ public class UserService {
 
         JwtStatus jwtStatus = jwtService.createJwtStatus(userId, accessToken, refreshToken);
         return jwtStatusRedisRepository.save(jwtStatus);
+    }
+
+    @Transactional
+    public User update(
+            UserUpdateRequest userUpdateRequest,
+            Integer userId
+    ) {
+        User existingUser = userRepository.getById(userId);
+        validNicknameDuplication(userUpdateRequest.nickname());
+        userUpdateRequest.applyTo(existingUser);
+        return existingUser;
     }
 }
