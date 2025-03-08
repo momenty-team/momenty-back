@@ -8,6 +8,7 @@ import com.momenty.global.auth.jwt.repository.JwtStatusRedisRepository;
 import com.momenty.global.auth.jwt.service.JwtService;
 import com.momenty.global.exception.GlobalException;
 import com.momenty.user.domain.User;
+import com.momenty.user.dto.request.NicknameCheckRequest;
 import com.momenty.user.dto.request.UserRegisterRequest;
 import com.momenty.user.dto.request.UserUpdateRequest;
 import com.momenty.user.repository.UserRepository;
@@ -76,5 +77,13 @@ public class UserService {
         validNicknameDuplication(userUpdateRequest.nickname());
         userUpdateRequest.applyTo(existingUser);
         return existingUser;
+    }
+
+    public User getInfo(Integer userId) {
+        return userRepository.getById(userId);
+    }
+
+    public void checkNickname(NicknameCheckRequest nicknameCheckRequest) {
+        validNicknameDuplication(nicknameCheckRequest.nickname());
     }
 }

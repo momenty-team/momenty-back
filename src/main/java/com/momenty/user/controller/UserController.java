@@ -3,8 +3,10 @@ package com.momenty.user.controller;
 import com.momenty.global.annotation.UserId;
 import com.momenty.global.auth.jwt.domain.JwtStatus;
 import com.momenty.user.domain.User;
+import com.momenty.user.dto.request.NicknameCheckRequest;
 import com.momenty.user.dto.request.UserRegisterRequest;
 import com.momenty.user.dto.request.UserUpdateRequest;
+import com.momenty.user.dto.response.UserInfoResponse;
 import com.momenty.user.dto.response.UserRegisterResponse;
 import com.momenty.user.dto.response.UserUpdateResponse;
 import com.momenty.user.service.UserService;
@@ -60,7 +62,7 @@ public class UserController {
                 .body(UserRegisterResponse.of(user));
     }
 
-    @PutMapping("/details")
+    @PutMapping("/me")
     public ResponseEntity<UserUpdateResponse> update (
             @Valid @RequestBody UserUpdateRequest userUpdateRequest,
             @UserId Integer userId
@@ -68,5 +70,23 @@ public class UserController {
         User user = userService.update(userUpdateRequest, userId);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(UserUpdateResponse.of(user));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserInfoResponse> getInfo (
+            @UserId Integer userId
+    ) {
+        User user = userService.getInfo(userId);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(UserInfoResponse.of(user));
+    }
+
+    @GetMapping("/nickname/check")
+    public ResponseEntity<Void> checkNickname (
+            @RequestBody NicknameCheckRequest nicknameCheckRequest,
+            @UserId Integer userId
+    ) {
+        userService.checkNickname(nicknameCheckRequest);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }
