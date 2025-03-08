@@ -26,10 +26,10 @@ public class GlobalExceptionHandler {
                 .body(response);
     }
 
-    @ExceptionHandler({InvalidJwtTokenException.class, AuthenticationException.class, UserNotFoundException.class})
-    public ResponseEntity<Map<String, String>> handleInvalidJwtTokenException(Exception ex) {
+    @ExceptionHandler(GlobalException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidJwtTokenException(GlobalException ex) {
         Map<String, String> errorBody = new HashMap<>();
         errorBody.put("error", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorBody);
+        return ResponseEntity.status(ex.getStatus()).body(errorBody);
     }
 }

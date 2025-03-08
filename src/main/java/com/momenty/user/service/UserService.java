@@ -1,17 +1,16 @@
 package com.momenty.user.service;
 
+import static com.momenty.user.exception.UserExceptionMessage.*;
+
 import com.momenty.global.auth.jwt.JwtTokenProvider;
 import com.momenty.global.auth.jwt.domain.JwtStatus;
 import com.momenty.global.auth.jwt.repository.JwtStatusRedisRepository;
 import com.momenty.global.auth.jwt.service.JwtService;
-import com.momenty.global.auth.oauth.apple.dto.AppleAuthResponse;
+import com.momenty.global.exception.GlobalException;
 import com.momenty.user.domain.User;
 import com.momenty.user.dto.request.UserRegisterRequest;
-import com.momenty.user.repository.UserRedisRepository;
 import com.momenty.user.repository.UserRepository;
-import com.momenty.util.mail.MailService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,19 +19,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class UserService {
 
-    private static final int CODE_LENGTH = 6;
-
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtService jwtService;
     private final JwtStatusRedisRepository jwtStatusRedisRepository;
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public JwtStatus generalRegister(
             UserRegisterRequest userRegisterRequest
     ) {
-        User user = userRegisterRequest.toUser(passwordEncoder);
+        User user = userRegisterRequest.toUser();
         User savedUser = userRepository.save(user);
         return generateJwt(savedUser.getId());
     }
@@ -50,8 +46,15 @@ public class UserService {
             Integer userId
     ) {
         User existingUser = userRepository.getById(userId);
-        userRegisterRequest.applyTo(existingUser, passwordEncoder);
+        validNicknameDuplication(userRegisterRequest.nickname());
+        userRegisterRequest.applyTo(existingUser);
         return existingUser;
+    }
+
+    private void validNicknameDuplication(String nickname) {
+        if (userRepository.findByNickname(nickname).isPresent()) {
+            throw new GlobalException(DUPLICATION_NICKNAME.getMessage(), DUPLICATION_NICKNAME.getStatus());
+        }
     }
 
     private JwtStatus generateJwt(Integer userId) {

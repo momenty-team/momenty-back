@@ -1,6 +1,8 @@
 package com.momenty.global.auth.resolver;
 
-import com.momenty.global.exception.UserNotFoundException;
+import static com.momenty.user.exception.UserExceptionMessage.AUTHENTICATION;
+
+import com.momenty.global.exception.GlobalException;
 import com.momenty.user.domain.User;
 import com.momenty.user.repository.UserRepository;
 import java.util.Collection;
@@ -23,7 +25,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         Integer id = Integer.parseInt(userId);
 
         User user = userRepository.findById(id)
-                .orElseThrow(UserNotFoundException::new);
+                .orElseThrow(() -> new GlobalException(AUTHENTICATION.getMessage(), AUTHENTICATION.getStatus()));
 
         Collection<GrantedAuthority> authorities = Collections.emptyList();
 
