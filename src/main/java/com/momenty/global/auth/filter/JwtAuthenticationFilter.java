@@ -1,9 +1,11 @@
 package com.momenty.global.auth.filter;
 
+import static com.momenty.global.auth.jwt.exception.TokenExceptionMessage.*;
+import static com.momenty.user.exception.UserExceptionMessage.*;
+
 import com.momenty.global.annotation.UserId;
 import com.momenty.global.auth.jwt.JwtTokenProvider;
-import com.momenty.global.exception.AuthenticationException;
-import com.momenty.global.exception.InvalidJwtTokenException;
+import com.momenty.global.exception.GlobalException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -65,7 +67,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(authentication);
         } else {
-            throw new InvalidJwtTokenException();
+            throw new GlobalException(INVALID_TOKEN.getMessage(), INVALID_TOKEN.getStatus());
         }
 
         filterChain.doFilter(request, response);
@@ -90,8 +92,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception e) {
-            System.out.println("🚨 Handler lookup failed for request: " + request.getRequestURI());
-            throw new AuthenticationException();
+            throw new GlobalException(AUTHENTICATION.getMessage(), AUTHENTICATION.getStatus());
         }
         return null;
     }

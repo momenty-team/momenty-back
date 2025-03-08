@@ -1,10 +1,12 @@
 package com.momenty.global.auth.jwt.service;
 
+import static com.momenty.global.auth.jwt.exception.TokenExceptionMessage.INVALID_TOKEN;
+
 import com.momenty.global.auth.jwt.JwtTokenProvider;
 import com.momenty.global.auth.jwt.domain.AppleJwtStatus;
 import com.momenty.global.auth.jwt.domain.JwtStatus;
 import com.momenty.global.auth.jwt.repository.JwtStatusRedisRepository;
-import com.momenty.global.exception.InvalidJwtTokenException;
+import com.momenty.global.exception.GlobalException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -44,7 +46,7 @@ public class JwtService {
 
     public JwtStatus issueAccessToken(String refreshToken) {
         if (refreshToken == null || !jwtTokenProvider.validateToken(refreshToken)) {
-            throw new InvalidJwtTokenException();
+            throw new GlobalException(INVALID_TOKEN.getMessage(), INVALID_TOKEN.getStatus());
         }
 
         String userId = jwtTokenProvider.getUserIdFromToken(refreshToken);

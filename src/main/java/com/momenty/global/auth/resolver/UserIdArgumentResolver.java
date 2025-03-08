@@ -1,7 +1,9 @@
 package com.momenty.global.auth.resolver;
 
+import static com.momenty.user.exception.UserExceptionMessage.AUTHENTICATION;
+
 import com.momenty.global.annotation.UserId;
-import com.momenty.global.exception.AuthenticationException;
+import com.momenty.global.exception.GlobalException;
 import org.springframework.core.MethodParameter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -35,7 +37,7 @@ public class UserIdArgumentResolver implements HandlerMethodArgumentResolver {
         if (principal instanceof CustomUserDetails) {
             return ((CustomUserDetails) principal).id();  // 사용자 ID 반환
         } else {
-            throw new AuthenticationException();
+            throw new GlobalException(AUTHENTICATION.getMessage(), AUTHENTICATION.getStatus());
         }
     }
 }

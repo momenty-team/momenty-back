@@ -4,6 +4,7 @@ import static lombok.AccessLevel.*;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
@@ -18,11 +19,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 
 @Getter
 @Entity
 @Table(name = "user")
 @NoArgsConstructor(access = PROTECTED)
+@EntityListeners(AuditingEntityListener.class)
 public class User {
 
     @Id
@@ -36,14 +40,6 @@ public class User {
     @Size(max = 50)
     @Column(name = "nickname", length = 50, unique = true)
     private String nickname;
-
-    @Size(max = 255)
-    @Column(name = "password", nullable = false)
-    private String password;
-
-    @Size(max = 15)
-    @Column(name = "phone_number", length = 20)
-    private String phoneNumber;
 
     @Column(name = "birth_date", nullable = false)
     private LocalDate birthDate;
@@ -82,18 +78,14 @@ public class User {
     @Builder
     private User(
             String name,
-            String password,
             String nickname,
-            String phoneNumber,
             String email,
             LocalDate birthDate,
             String profileImageUrl,
             Gender gender
     ) {
         this.name = name;
-        this.password = password;
         this.nickname = nickname;
-        this.phoneNumber = phoneNumber;
         this.email = email;
         this.profileImageUrl = profileImageUrl;
         this.birthDate = birthDate;
@@ -101,22 +93,12 @@ public class User {
     }
 
     public void updateProfile(
-            String name,
             String nickname,
-            String encodedPassword,
-            String phoneNumber,
             LocalDate birthDate,
-            String email,
-            String profileImageUrl,
             Gender gender
     ) {
-        this.name = name;
         this.nickname = nickname;
-        this.password = encodedPassword;
-        this.phoneNumber = phoneNumber;
         this.birthDate = birthDate;
-        this.email = email;
-        this.profileImageUrl = profileImageUrl;
         this.gender = gender;
     }
 }
