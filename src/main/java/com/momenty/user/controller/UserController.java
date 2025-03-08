@@ -4,7 +4,9 @@ import com.momenty.global.annotation.UserId;
 import com.momenty.global.auth.jwt.domain.JwtStatus;
 import com.momenty.user.domain.User;
 import com.momenty.user.dto.request.UserRegisterRequest;
+import com.momenty.user.dto.request.UserUpdateRequest;
 import com.momenty.user.dto.response.UserRegisterResponse;
+import com.momenty.user.dto.response.UserUpdateResponse;
 import com.momenty.user.service.UserService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -12,7 +14,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -54,5 +58,15 @@ public class UserController {
         User user = userService.register(userRegisterRequest, userId);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(UserRegisterResponse.of(user));
+    }
+
+    @PutMapping("/details")
+    public ResponseEntity<UserUpdateResponse> update (
+            @Valid @RequestBody UserUpdateRequest userUpdateRequest,
+            @UserId Integer userId
+    ) {
+        User user = userService.update(userUpdateRequest, userId);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(UserUpdateResponse.of(user));
     }
 }

@@ -19,7 +19,7 @@ public record UserRegisterRequest(
         String gender
 ) {
     public void applyTo(User user) {
-        user.updateProfile(
+        user.updateProfileToRegister(
                 this.nickname,
                 this.birthDate,
                 Gender.valueOf(this.gender.toUpperCase())

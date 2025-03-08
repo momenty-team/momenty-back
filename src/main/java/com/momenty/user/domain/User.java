@@ -82,7 +82,8 @@ public class User {
             String email,
             LocalDate birthDate,
             String profileImageUrl,
-            Gender gender
+            Gender gender,
+            boolean isPublic
     ) {
         this.name = name;
         this.nickname = nickname;
@@ -90,9 +91,24 @@ public class User {
         this.profileImageUrl = profileImageUrl;
         this.birthDate = birthDate;
         this.gender = gender;
+        this.isPublic = isPublic;
     }
 
     public void updateProfile(
+            String nickname,
+            LocalDate birthDate,
+            Gender gender,
+            Boolean isPublic,
+            String profileImageUrl
+    ) {
+        this.nickname = nickname;
+        this.birthDate = birthDate;
+        this.gender = gender;
+        this.isPublic = isPublic;
+        this.profileImageUrl = profileImageUrl;
+    }
+
+    public void updateProfileToRegister(
             String nickname,
             LocalDate birthDate,
             Gender gender

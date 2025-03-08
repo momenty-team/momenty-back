@@ -2,10 +2,13 @@ package com.momenty.global.auth.jwt;
 
 import com.momenty.global.auth.jwt.domain.JwtStatus;
 import com.momenty.global.auth.jwt.repository.JwtStatusRedisRepository;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -80,8 +83,15 @@ public class JwtTokenProvider {
             JwtStatus jwtStatus = jwtStatusRedisRepository.getById(Integer.parseInt(userId));
 
             return token.equals(jwtStatus.getAccessToken()) || token.equals(jwtStatus.getRefreshToken());
-        } catch (JwtException | NumberFormatException e) {
-            return false;
+        } catch (ExpiredJwtException e) {
+            log.error("❌ 만료된 JWT 토큰: {}", e.getMessage());
+        } catch (MalformedJwtException e) {
+            log.error("❌ 잘못된 JWT 형식: {}", e.getMessage());
+        } catch (SignatureException e) {
+            log.error("❌ JWT 서명 오류: {}", e.getMessage());
+        } catch (Exception e) {
+            log.error("❌ JWT 검증 실패: {}", e.getMessage());
         }
+        return false;
     }
 }

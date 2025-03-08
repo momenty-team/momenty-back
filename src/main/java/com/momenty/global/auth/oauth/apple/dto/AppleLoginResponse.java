@@ -1,8 +1,11 @@
 package com.momenty.global.auth.oauth.apple.dto;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.momenty.global.auth.oauth.apple.domain.AppleUser;
 import java.time.LocalDateTime;
 
+@JsonNaming(SnakeCaseStrategy.class)
 public record AppleLoginResponse(
         Integer id,
         String email,
