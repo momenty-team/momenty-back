@@ -2,6 +2,8 @@ package com.momenty.user.domain;
 
 import static lombok.AccessLevel.*;
 
+import com.momenty.notification.domain.UserNotificationHistory;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -10,10 +12,13 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -77,6 +82,9 @@ public class User {
 
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private final List<UserNotificationHistory> notifications = new ArrayList<>();
 
     @Builder
     private User(
