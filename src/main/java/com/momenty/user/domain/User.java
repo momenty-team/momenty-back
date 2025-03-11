@@ -55,14 +55,17 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
-    @Column(name = "is_public", nullable = false)
+    @Column(name = "is_public")
     private boolean isPublic = false;
 
-    @Column(name = "follower_count", nullable = false)
+    @Column(name = "follower_count")
     private Integer followerCount;
 
-    @Column(name = "following_count", nullable = false)
+    @Column(name = "following_count")
     private Integer followingCount;
+
+    @Column(name = "notification_token")
+    private String notificationToken;
 
     @CreatedDate
     @Column(name = "created_at", columnDefinition = "TIMESTAMP", nullable = false, updatable = false)
@@ -116,5 +119,11 @@ public class User {
         this.nickname = nickname;
         this.birthDate = birthDate;
         this.gender = gender;
+    }
+
+    public void updateNotificationToken(
+            String notificationToken
+    ) {
+        this.notificationToken = notificationToken;
     }
 }
