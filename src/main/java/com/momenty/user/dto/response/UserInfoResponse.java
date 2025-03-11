@@ -2,11 +2,14 @@ package com.momenty.user.dto.response;
 
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.momenty.user.domain.Gender;
 import com.momenty.user.domain.User;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+@JsonNaming(SnakeCaseStrategy.class)
 public record UserInfoResponse(
         Integer id,
         String name,
