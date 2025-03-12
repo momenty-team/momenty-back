@@ -2,9 +2,11 @@ package com.momenty.notification.controller;
 
 import com.momenty.global.annotation.UserId;
 import com.momenty.notification.domain.UserNotificationHistory;
+import com.momenty.notification.domain.UserNotificationSetting;
 import com.momenty.notification.dto.NotificationTokenRequest;
 import com.momenty.notification.dto.UserNotificationHistoryResponse;
 import com.momenty.notification.dto.UserNotificationHistoryUpdateRequest;
+import com.momenty.notification.dto.UserNotificationSettingResponse;
 import com.momenty.notification.service.NotificationService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +43,7 @@ public class NotificationController {
                 notificationService.getUserNotificationHistory(userId);
 
         return ResponseEntity.status(HttpStatus.OK)
-                .body(UserNotificationHistoryResponse.from(userNotificationHistories));
+                .body(UserNotificationHistoryResponse.of(userNotificationHistories));
     }
 
     @PutMapping("/user/history")
@@ -51,5 +53,14 @@ public class NotificationController {
     ) {
         notificationService.readUserNotificationHistory(userNotificationHistoryUpdateRequest);
         return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @GetMapping("/user/setting")
+    public ResponseEntity<UserNotificationSettingResponse> getUserNotificationSetting(
+            @UserId Integer userId
+    ) {
+        List<UserNotificationSetting> userNotificationSettings = notificationService.getUserNotificationSetting(userId);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(UserNotificationSettingResponse.of(userNotificationSettings));
     }
 }
