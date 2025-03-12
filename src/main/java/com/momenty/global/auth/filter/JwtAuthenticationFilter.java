@@ -61,6 +61,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             requiresJwt = Arrays.stream(handlerMethod.getMethodParameters())
                     .anyMatch(param -> param.hasParameterAnnotation(UserId.class));
 
+            log.info("handlerMethod.getMethodParameters(): " + Arrays.toString(handlerMethod.getMethodParameters()));
+            log.info("requiresJwt: " + requiresJwt);
+
             if (!requiresJwt) {
                 filterChain.doFilter(request, response);
                 return;

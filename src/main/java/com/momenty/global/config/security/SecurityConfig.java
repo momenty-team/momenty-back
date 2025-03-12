@@ -31,16 +31,8 @@ public class SecurityConfig {
                 // CORS
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 // 요청 별 인가 설정
-                .authorizeHttpRequests(auth -> auth
-                        // Swagger UI 인증 제외
-                        .requestMatchers(
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/swagger-resources/**",
-                                "/swagger-ui.html",
-                                "/webjars/**"
-                        ).permitAll()
-                        .anyRequest().authenticated()
+                .authorizeHttpRequests(authorize -> authorize
+                        .anyRequest().permitAll()
                 )
                 // 폼 로그인 비활성화: 기본 formLogin을 사용하지 않음
                 .formLogin(AbstractHttpConfigurer::disable)
