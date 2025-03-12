@@ -53,4 +53,12 @@ public class UserNotificationHistory {
     public void readNotification() {
         isRead = true;
     }
+
+    public static UserNotificationHistory create(User user, Notification notification) {
+        UserNotificationHistory history = new UserNotificationHistory();
+        history.user = user;
+        history.notification = notification;
+        history.isRead = false; // 기본값: 읽지 않음
+        return history;
+    }
 }
