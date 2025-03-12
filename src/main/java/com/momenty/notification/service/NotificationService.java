@@ -115,11 +115,14 @@ public class NotificationService {
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
 
+        log.info("푸시 요청 데이터: {}", requestBody);
+        log.info("푸시 요청 헤더: {}", headers);
+
         try {
             ResponseEntity<String> response = restTemplate.postForEntity(EXPO_PUSH_API_URL, request, String.class);
             if (response.getStatusCode().is2xxSuccessful()) {
-                addUserNotificationHistory(userId, notificationId);
                 log.warn("푸시 알림 전송 성공: status={}, response={}", response.getStatusCode(), response.getBody());
+                addUserNotificationHistory(userId, notificationId);
             } else {
                 log.warn("푸시 알림 전송 실패: status={}, response={}", response.getStatusCode(), response.getBody());
             }

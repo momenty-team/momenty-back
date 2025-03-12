@@ -44,8 +44,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
+        String requestURI = request.getRequestURI();
+
+        if (requestURI.startsWith("/swagger-ui") || requestURI.startsWith("/v3/api-docs") || requestURI.startsWith("/swagger-resources")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+
         boolean requiresJwt = false;
         HandlerExecutionChain handlerChainExec = findHandler(request);
+
 
         if (handlerChainExec != null && handlerChainExec.getHandler() instanceof HandlerMethod) {
             HandlerMethod handlerMethod = (HandlerMethod) handlerChainExec.getHandler();

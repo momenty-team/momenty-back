@@ -1,6 +1,7 @@
 package com.momenty.global.config.application;
 
 import com.momenty.global.auth.oauth.apple.domain.AppleAuthProperty;
+import java.util.List;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,8 +22,15 @@ public class ApplicationConfig {
         configuration.addAllowedHeader("*");
         configuration.setAllowCredentials(true);
 
+        CorsConfiguration swaggerCorsConfig = new CorsConfiguration();
+        swaggerCorsConfig.setAllowedOrigins(List.of("http://localhost:8080")); // Swagger UI 허용
+        swaggerCorsConfig.setAllowedMethods(List.of("*"));
+        swaggerCorsConfig.setAllowedHeaders(List.of("*"));
+        swaggerCorsConfig.setAllowCredentials(true);
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/auth/apple/callback", configuration);
+        source.registerCorsConfiguration("/**", swaggerCorsConfig);
         return source;
     }
 
