@@ -30,6 +30,8 @@ dependencyManagement {
 }
 
 dependencies {
+	implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.1.0'
+
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
 	implementation 'com.sun.mail:jakarta.mail:2.0.1'
 
