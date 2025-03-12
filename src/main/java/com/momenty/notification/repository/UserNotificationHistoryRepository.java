@@ -4,14 +4,12 @@ import static com.momenty.notification.exception.NotificationExceptionMessage.*;
 
 import com.momenty.global.exception.GlobalException;
 import com.momenty.notification.domain.UserNotificationHistory;
-import com.momenty.notification.exception.NotificationExceptionMessage;
 import com.momenty.user.domain.User;
-import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.repository.Repository;
 
-public interface UserNotificationRepository extends Repository<UserNotificationHistory, Integer> {
+public interface UserNotificationHistoryRepository extends Repository<UserNotificationHistory, Integer> {
 
     List<UserNotificationHistory> findAllByUser(User user);
 
@@ -25,4 +23,6 @@ public interface UserNotificationRepository extends Repository<UserNotificationH
                 )
         );
     }
+
+    void save(UserNotificationHistory userNotificationHistory);
 }
