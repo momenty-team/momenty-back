@@ -2,6 +2,7 @@ package com.momenty.notification.service;
 
 import com.momenty.notification.domain.UserNotificationHistory;
 import com.momenty.notification.dto.NotificationTokenRequest;
+import com.momenty.notification.dto.UserNotificationHistoryUpdateRequest;
 import com.momenty.notification.repository.UserNotificationRepository;
 import com.momenty.user.domain.User;
 import com.momenty.user.repository.UserRepository;
@@ -27,5 +28,14 @@ public class NotificationService {
     public List<UserNotificationHistory> getUserNotificationHistory(Integer userId) {
         User user = userRepository.getById(userId);
         return userNotificationRepository.findAllByUser(user);
+    }
+
+    @Transactional
+    public void readUserNotificationHistory(
+            UserNotificationHistoryUpdateRequest userNotificationHistoryUpdateRequest
+    ) {
+        UserNotificationHistory notificationHistory =
+                userNotificationRepository.getById(userNotificationHistoryUpdateRequest.userNotificationHistoryId());
+        notificationHistory.readNotification();
     }
 }

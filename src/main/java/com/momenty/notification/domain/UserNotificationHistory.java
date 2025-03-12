@@ -49,4 +49,8 @@ public class UserNotificationHistory {
     @LastModifiedDate
     @Column(name = "updated_at", columnDefinition = "TIMESTAMP", nullable = false, updatable = true)
     private LocalDateTime updatedAt;
+
+    public void readNotification() {
+        isRead = true;
+    }
 }
