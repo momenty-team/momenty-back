@@ -27,7 +27,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(GlobalException.class)
-    public ResponseEntity<Map<String, String>> handleInvalidJwtTokenException(GlobalException ex) {
+    public ResponseEntity<Map<String, String>> handleGlobalException(GlobalException ex) {
         Map<String, String> errorBody = new HashMap<>();
         errorBody.put("error", ex.getMessage());
         return ResponseEntity.status(ex.getStatus()).body(errorBody);

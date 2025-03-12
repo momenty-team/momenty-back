@@ -94,7 +94,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception e) {
-            throw new GlobalException(AUTHENTICATION.getMessage(), AUTHENTICATION.getStatus());
+            throw new GlobalException(BAD_REQUEST.getMessage(), BAD_REQUEST.getStatus());
         }
         return null;
     }
