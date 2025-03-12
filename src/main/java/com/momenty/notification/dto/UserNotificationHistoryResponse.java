@@ -18,7 +18,7 @@ public record UserNotificationHistoryResponse(
             Boolean isRead
     ) {}
 
-    public static UserNotificationHistoryResponse from(List<UserNotificationHistory> histories) {
+    public static UserNotificationHistoryResponse of(List<UserNotificationHistory> histories) {
         List<UserNotificationHistoryDto> dtoList = histories.stream()
                 .map(history -> new UserNotificationHistoryDto(
                         history.getNotification().getId(),
