@@ -31,4 +31,14 @@ public class UserNotificationSetting {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "notification_type_id")
     private NotificationType notificationType;
+
+    private UserNotificationSetting(User user, NotificationType notificationType) {
+        this.id = UserNotificationSettingId.of(user.getId(), notificationType.getId());
+        this.user = user;
+        this.notificationType = notificationType;
+    }
+
+    public static UserNotificationSetting of(User user, NotificationType notificationType) {
+        return new UserNotificationSetting(user, notificationType);
+    }
 }

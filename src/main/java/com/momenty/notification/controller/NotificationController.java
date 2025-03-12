@@ -4,6 +4,7 @@ import com.momenty.global.annotation.UserId;
 import com.momenty.notification.domain.UserNotificationHistory;
 import com.momenty.notification.domain.UserNotificationSetting;
 import com.momenty.notification.dto.NotificationTokenRequest;
+import com.momenty.notification.dto.UpdateUserNotificationSettingRequest;
 import com.momenty.notification.dto.UserNotificationHistoryResponse;
 import com.momenty.notification.dto.UserNotificationHistoryUpdateRequest;
 import com.momenty.notification.dto.UserNotificationSettingResponse;
@@ -62,5 +63,14 @@ public class NotificationController {
         List<UserNotificationSetting> userNotificationSettings = notificationService.getUserNotificationSetting(userId);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(UserNotificationSettingResponse.of(userNotificationSettings));
+    }
+
+    @PutMapping("/user/setting")
+    public ResponseEntity<Void> updateUserNotificationSetting(
+            @RequestBody UpdateUserNotificationSettingRequest updateUserNotificationSettingRequest,
+            @UserId Integer userId
+    ) {
+        notificationService.updateUserNotificationSetting(updateUserNotificationSettingRequest, userId);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

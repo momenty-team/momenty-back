@@ -3,7 +3,9 @@ package com.momenty.notification.domain;
 import jakarta.persistence.Embeddable;
 import java.io.Serializable;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
+@Getter
 @Embeddable
 @EqualsAndHashCode
 public class UserNotificationSettingId implements Serializable {
@@ -18,7 +20,7 @@ public class UserNotificationSettingId implements Serializable {
 
     protected UserNotificationSettingId(){};
 
-    public UserNotificationSettingId of(Integer user, Integer notificationType) {
+    public static UserNotificationSettingId of(Integer user, Integer notificationType) {
         return new UserNotificationSettingId(user, notificationType);
     }
 }

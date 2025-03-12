@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 @Getter
 public enum NotificationExceptionMessage {
     NOT_FOUND_NOTIFICATION_HISTORY("알림 기록을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    NOT_FOUND_NOTIFICATION_TYPE("알림 타입을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     ;
 
     private final String message;
