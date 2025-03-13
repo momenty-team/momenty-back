@@ -12,8 +12,6 @@ import com.momenty.user.dto.request.NicknameCheckRequest;
 import com.momenty.user.dto.request.UserRegisterRequest;
 import com.momenty.user.dto.request.UserUpdateRequest;
 import com.momenty.user.repository.UserRepository;
-import jakarta.validation.Valid;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -66,11 +64,7 @@ public class UserService {
         String accessToken = jwtTokenProvider.generateAccessToken(String.valueOf(userId));
         String refreshToken = jwtTokenProvider.generateRefreshToken(String.valueOf(userId));
 
-        JwtStatus jwtStatus = jwtService.createJwtStatus(
-                userId,
-                URLEncoder.encode(accessToken, StandardCharsets.UTF_8),
-                URLEncoder.encode(refreshToken, StandardCharsets.UTF_8)
-        );
+        JwtStatus jwtStatus = jwtService.createJwtStatus(userId, accessToken, refreshToken);
         return jwtStatusRedisRepository.save(jwtStatus);
     }
 
