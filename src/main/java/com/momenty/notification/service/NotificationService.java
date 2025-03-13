@@ -48,6 +48,7 @@ public class NotificationService {
     public void saveToken(NotificationTokenRequest notificationTokenRequest, Integer userId) {
         User user = userRepository.getById(userId);
         user.updateNotificationToken(notificationTokenRequest.token());
+        log.info("user의 save token: {}", user.getNotificationToken());
     }
 
     public List<UserNotificationHistory> getUserNotificationHistory(Integer userId) {
