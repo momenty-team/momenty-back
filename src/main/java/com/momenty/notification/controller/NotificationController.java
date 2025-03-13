@@ -48,6 +48,7 @@ public class NotificationController {
             log.info("Request has no cookies");
         }
 
+        log.info("Request token: {}", notificationTokenRequest.token());
         notificationService.saveToken(notificationTokenRequest, userId);
         log.info("저장");
         return ResponseEntity.status(HttpStatus.OK).build();
