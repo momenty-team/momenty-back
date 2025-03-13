@@ -99,7 +99,11 @@ public class AppleAuthService {
         String refreshToken = jwtTokenProvider.generateRefreshToken(String.valueOf(userId));
 
         JwtStatus jwtStatus = jwtService.createJwtStatus(userId, accessToken, refreshToken);
-        return jwtStatusRedisRepository.save(jwtStatus);
+        jwtStatusRedisRepository.save(jwtStatus);
+
+        return jwtStatusRedisRepository.findById(userId).orElseThrow(
+                () -> new IllegalStateException("JWT 저장 후 조회 실패")
+        );
     }
 
     private boolean canRegisterUser(String email) {
