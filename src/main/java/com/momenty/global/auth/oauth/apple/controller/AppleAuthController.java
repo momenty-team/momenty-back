@@ -43,15 +43,19 @@ public class AppleAuthController {
 
         Cookie accessTokenCookie = new Cookie("access_token", authResponse.accessToken());
         accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setSecure(true);
         accessTokenCookie.setPath("/");
         accessTokenCookie.setMaxAge(60 * 60); // 1시간
+        accessTokenCookie.setAttribute("SameSite", "None");
 
         log.info("반환한 aceess token: access_token={}", authResponse.accessToken());
 
         Cookie refreshTokenCookie = new Cookie("refresh_token", authResponse.refreshToken());
         refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(true);
         refreshTokenCookie.setPath("/");
         refreshTokenCookie.setMaxAge(60 * 60 * 24 * 14); // 14일
+        refreshTokenCookie.setAttribute("SameSite", "None");
 
         response.addCookie(accessTokenCookie);
         response.addCookie(refreshTokenCookie);
