@@ -11,7 +11,9 @@ import com.momenty.notification.dto.UserNotificationSettingResponse;
 import com.momenty.notification.service.NotificationService;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -37,7 +39,15 @@ public class NotificationController {
             @Parameter(hidden = true) @UserId Integer userId,
             HttpServletRequest request
     ) {
-        log.info("request cookies: {}", (Object) request.getCookies());
+        if (request.getCookies() != null) {
+            String cookies = Arrays.stream(request.getCookies())
+                    .map(cookie -> cookie.getName() + "=" + cookie.getValue())
+                    .collect(Collectors.joining("; "));
+            log.info("Request cookies: {}", cookies);
+        } else {
+            log.info("Request has no cookies");
+        }
+
         notificationService.saveToken(notificationTokenRequest, userId);
         log.info("저장");
         return ResponseEntity.status(HttpStatus.OK).build();
