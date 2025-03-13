@@ -12,6 +12,8 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,7 +93,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (request.getCookies() == null) return null;
         for (Cookie cookie : request.getCookies()) {
             if (cookie.getName().equals(cookieName)) {
-                return cookie.getValue();
+                return URLDecoder.decode(cookie.getValue(), StandardCharsets.UTF_8);
             }
         }
         return null;
