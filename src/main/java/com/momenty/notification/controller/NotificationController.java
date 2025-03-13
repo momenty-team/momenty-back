@@ -10,6 +10,7 @@ import com.momenty.notification.dto.UserNotificationHistoryUpdateRequest;
 import com.momenty.notification.dto.UserNotificationSettingResponse;
 import com.momenty.notification.service.NotificationService;
 import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,9 +34,10 @@ public class NotificationController {
     @PostMapping("/token")
     public ResponseEntity<Void> saveNotificationToken(
             @RequestBody NotificationTokenRequest notificationTokenRequest,
-            @Parameter(hidden = true) @UserId Integer userId
+            @Parameter(hidden = true) @UserId Integer userId,
+            HttpServletRequest request
     ) {
-        log.info("notificationTokenRequest token: {}", notificationTokenRequest.token());
+        log.info("request cookies: {}", (Object) request.getCookies());
         notificationService.saveToken(notificationTokenRequest, userId);
         log.info("저장");
         return ResponseEntity.status(HttpStatus.OK).build();
