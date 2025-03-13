@@ -9,6 +9,8 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -82,7 +84,11 @@ public class JwtTokenProvider {
             String userId = getUserIdFromToken(token);
             JwtStatus jwtStatus = jwtStatusRedisRepository.getById(Integer.parseInt(userId));
 
-            return token.equals(jwtStatus.getAccessToken()) || token.equals(jwtStatus.getRefreshToken());
+            return token.equals(
+                    URLDecoder.decode(jwtStatus.getAccessToken(), StandardCharsets.UTF_8)
+            ) || token.equals(
+                    URLDecoder.decode(jwtStatus.getRefreshToken(), StandardCharsets.UTF_8)
+            );
         } catch (ExpiredJwtException e) {
             log.error("❌ 만료된 JWT 토큰: {}", e.getMessage());
         } catch (MalformedJwtException e) {

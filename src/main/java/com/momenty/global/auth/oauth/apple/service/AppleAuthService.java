@@ -19,6 +19,8 @@ import com.momenty.user.domain.User;
 import com.momenty.user.repository.UserRepository;
 import com.momenty.user.service.UserService;
 import io.jsonwebtoken.Claims;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
@@ -101,7 +103,11 @@ public class AppleAuthService {
         String accessToken = jwtTokenProvider.generateAccessToken(String.valueOf(userId));
         String refreshToken = jwtTokenProvider.generateRefreshToken(String.valueOf(userId));
 
-        JwtStatus jwtStatus = jwtService.createJwtStatus(userId, accessToken, refreshToken);
+        JwtStatus jwtStatus = jwtService.createJwtStatus(
+                userId,
+                URLEncoder.encode(accessToken, StandardCharsets.UTF_8),
+                URLEncoder.encode(refreshToken, StandardCharsets.UTF_8)
+        );
         jwtStatusRedisRepository.save(jwtStatus);
 
         return jwtStatusRedisRepository.findById(userId).orElseThrow(
