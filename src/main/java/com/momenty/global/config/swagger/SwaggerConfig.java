@@ -17,7 +17,8 @@ public class SwaggerConfig {
         String refreshTokenScheme = "RefreshToken";
 
         SecurityRequirement securityRequirement = new SecurityRequirement()
-                .addList(accessTokenScheme);
+                .addList(accessTokenScheme)
+                .addList(refreshTokenScheme);
 
         Components components = new Components()
                 .addSecuritySchemes(accessTokenScheme, new SecurityScheme()

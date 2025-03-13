@@ -10,6 +10,7 @@ import com.momenty.user.dto.response.UserInfoResponse;
 import com.momenty.user.dto.response.UserRegisterResponse;
 import com.momenty.user.dto.response.UserUpdateResponse;
 import com.momenty.user.service.UserService;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -55,7 +56,7 @@ public class UserController {
     @PostMapping("/register")
     public ResponseEntity<UserRegisterResponse> register (
             @Valid @RequestBody UserRegisterRequest userRegisterRequest,
-            @UserId Integer userId
+            @Parameter(hidden = true) @UserId Integer userId
     ) {
         User user = userService.register(userRegisterRequest, userId);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -65,7 +66,7 @@ public class UserController {
     @PutMapping("/me")
     public ResponseEntity<UserUpdateResponse> update (
             @Valid @RequestBody UserUpdateRequest userUpdateRequest,
-            @UserId Integer userId
+            @Parameter(hidden = true) @UserId Integer userId
     ) {
         User user = userService.update(userUpdateRequest, userId);
         return ResponseEntity.status(HttpStatus.OK)
@@ -74,7 +75,7 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<UserInfoResponse> getInfo (
-            @UserId Integer userId
+            @Parameter(hidden = true) @UserId Integer userId
     ) {
         User user = userService.getInfo(userId);
         return ResponseEntity.status(HttpStatus.OK)
@@ -84,7 +85,7 @@ public class UserController {
     @GetMapping("/nickname/check")
     public ResponseEntity<Void> checkNickname (
             @RequestBody NicknameCheckRequest nicknameCheckRequest,
-            @UserId Integer userId
+            @Parameter(hidden = true) @UserId Integer userId
     ) {
         userService.checkNickname(nicknameCheckRequest);
         return ResponseEntity.status(HttpStatus.OK).build();

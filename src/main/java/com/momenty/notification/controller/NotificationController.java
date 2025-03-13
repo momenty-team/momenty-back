@@ -9,8 +9,10 @@ import com.momenty.notification.dto.UserNotificationHistoryResponse;
 import com.momenty.notification.dto.UserNotificationHistoryUpdateRequest;
 import com.momenty.notification.dto.UserNotificationSettingResponse;
 import com.momenty.notification.service.NotificationService;
+import io.swagger.v3.oas.annotations.Parameter;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/notification")
 @RequiredArgsConstructor
@@ -30,15 +33,17 @@ public class NotificationController {
     @PostMapping("/token")
     public ResponseEntity<Void> saveNotificationToken(
             @RequestBody NotificationTokenRequest notificationTokenRequest,
-            @UserId Integer userId
+            @Parameter(hidden = true) @UserId Integer userId
     ) {
+        log.info("notificationTokenRequest token: {}", notificationTokenRequest.token());
         notificationService.saveToken(notificationTokenRequest, userId);
+        log.info("저장");
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @GetMapping("/user/history")
     public ResponseEntity<UserNotificationHistoryResponse> getUserNotificationHistory(
-            @UserId Integer userId
+            @Parameter(hidden = true) @UserId Integer userId
     ) {
         List<UserNotificationHistory> userNotificationHistories =
                 notificationService.getUserNotificationHistory(userId);
@@ -50,7 +55,7 @@ public class NotificationController {
     @PutMapping("/user/history")
     public ResponseEntity<Void> updateUserNotificationHistory(
             @RequestBody UserNotificationHistoryUpdateRequest userNotificationHistoryUpdateRequest,
-            @UserId Integer userId
+            @Parameter(hidden = true) @UserId Integer userId
     ) {
         notificationService.readUserNotificationHistory(userNotificationHistoryUpdateRequest);
         return ResponseEntity.status(HttpStatus.OK).build();
@@ -58,7 +63,7 @@ public class NotificationController {
 
     @GetMapping("/user/setting")
     public ResponseEntity<UserNotificationSettingResponse> getUserNotificationSetting(
-            @UserId Integer userId
+            @Parameter(hidden = true) @UserId Integer userId
     ) {
         List<UserNotificationSetting> userNotificationSettings = notificationService.getUserNotificationSetting(userId);
         return ResponseEntity.status(HttpStatus.OK)
@@ -68,7 +73,7 @@ public class NotificationController {
     @PutMapping("/user/setting")
     public ResponseEntity<Void> updateUserNotificationSetting(
             @RequestBody UpdateUserNotificationSettingRequest updateUserNotificationSettingRequest,
-            @UserId Integer userId
+            @Parameter(hidden = true) @UserId Integer userId
     ) {
         notificationService.updateUserNotificationSetting(updateUserNotificationSettingRequest, userId);
         return ResponseEntity.status(HttpStatus.OK).build();
