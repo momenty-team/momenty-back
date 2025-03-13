@@ -13,10 +13,18 @@ public interface UserRepository extends Repository<User, Integer> {
 
     Optional<User> findById(Integer id);
 
+    Optional<User> findByEmail(String email);
+
     Optional<User> findByNickname(String nickname);
 
     default User getById(Integer id) {
         return findById(id).orElseThrow(
+                () -> new GlobalException(NOT_FOUND_USER.getMessage(), NOT_FOUND_USER.getStatus())
+        );
+    }
+
+    default User getByEmail(String email) {
+        return findByEmail(email).orElseThrow(
                 () -> new GlobalException(NOT_FOUND_USER.getMessage(), NOT_FOUND_USER.getStatus())
         );
     }
