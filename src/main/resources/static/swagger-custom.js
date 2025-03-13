@@ -31,28 +31,66 @@ window.onload = function () {
       waitForElement('.modal-ux-content', () => {
         setTimeout(() => {
           let accessTokenInput = document.querySelector('input[name="access_token"]');
+          let refreshTokenInput = document.querySelector('input[name="refresh_token"]');
+
+          // ✅ 사용자가 입력한 값을 우선 적용 (쿠키 값을 덮어쓰지 않음)
           if (accessTokenInput) {
             let currentAccessToken = accessTokenInput.value.trim();
-            if (!currentAccessToken) {
-              accessTokenInput.value = accessToken || "";
+            if (!currentAccessToken && accessToken) {
+              accessTokenInput.value = accessToken;
               accessTokenInput.dispatchEvent(new Event('input', { bubbles: true }));
+              accessTokenInput.dispatchEvent(new Event('change', { bubbles: true }));
             }
           }
 
-          let refreshTokenInput = document.querySelector('input[name="refresh_token"]');
           if (refreshTokenInput) {
             let currentRefreshToken = refreshTokenInput.value.trim();
-            if (!currentRefreshToken) {
-              refreshTokenInput.value = refreshToken || "";
+            if (!currentRefreshToken && refreshToken) {
+              refreshTokenInput.value = refreshToken;
               refreshTokenInput.dispatchEvent(new Event('input', { bubbles: true }));
+              refreshTokenInput.dispatchEvent(new Event('change', { bubbles: true }));
             }
           }
 
-          waitForElement('.btn.modal-btn.auth.authorize.button', (modalAuthorizeButton) => {
-            modalAuthorizeButton.click();
+          // ✅ Swagger UI의 토큰 저장 방식과 동기화 (localStorage 활용)
+          setTimeout(() => {
+            let modalAuthorizeButton = document.querySelector('.btn.modal-btn.auth.authorize.button');
+            if (modalAuthorizeButton) {
+              modalAuthorizeButton.click();
+
+              // Swagger UI 내부에서 사용하는 `window.localStorage` 업데이트
+              setTimeout(() => {
+                if (accessToken) {
+                  localStorage.setItem('swagger_access_token', accessToken);
+                }
+                if (refreshToken) {
+                  localStorage.setItem('swagger_refresh_token', refreshToken);
+                }
+              }, 500);
+            }
+          }, 500);
+
+          // ✅ MutationObserver로 토큰 값 변경 감지
+          const observer = new MutationObserver(() => {
+            let newAccessToken = getCookie('access_token');
+            let newRefreshToken = getCookie('refresh_token');
+
+            if (accessTokenInput && newAccessToken !== accessTokenInput.value) {
+              accessTokenInput.value = newAccessToken || "";
+              accessTokenInput.dispatchEvent(new Event('input', { bubbles: true }));
+              accessTokenInput.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+
+            if (refreshTokenInput && newRefreshToken !== refreshTokenInput.value) {
+              refreshTokenInput.value = newRefreshToken || "";
+              refreshTokenInput.dispatchEvent(new Event('input', { bubbles: true }));
+              refreshTokenInput.dispatchEvent(new Event('change', { bubbles: true }));
+            }
           });
 
-          // **모든 API 요청이 쿠키를 포함하도록 설정**
+          observer.observe(document.body, { childList: true, subtree: true });
+
+          // ✅ 모든 API 요청이 쿠키를 포함하도록 설정
           waitForElement('.execute', () => {
             let executeButtons = document.querySelectorAll('.execute');
             executeButtons.forEach(button => {
