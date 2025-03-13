@@ -93,7 +93,8 @@ public class AppleAuthService {
         appleJwtStatusRedisRepository.save(appleJwtStatus);
     }
 
-    private JwtStatus generateJwt(Integer userId) {
+    @Transactional
+    protected JwtStatus generateJwt(Integer userId) {
         String accessToken = jwtTokenProvider.generateAccessToken(String.valueOf(userId));
         String refreshToken = jwtTokenProvider.generateRefreshToken(String.valueOf(userId));
 
