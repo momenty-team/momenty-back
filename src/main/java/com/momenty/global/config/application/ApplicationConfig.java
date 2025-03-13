@@ -23,7 +23,7 @@ public class ApplicationConfig {
         configuration.setAllowCredentials(true);
 
         CorsConfiguration swaggerCorsConfig = new CorsConfiguration();
-        swaggerCorsConfig.setAllowedOrigins(List.of("http://localhost:8080")); // Swagger UI 허용
+        swaggerCorsConfig.addAllowedOriginPattern("*");  // Swagger UI 허용
         swaggerCorsConfig.setAllowedMethods(List.of("*"));
         swaggerCorsConfig.setAllowedHeaders(List.of("*"));
         swaggerCorsConfig.setAllowCredentials(true);

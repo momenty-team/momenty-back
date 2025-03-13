@@ -46,6 +46,8 @@ public class AppleAuthController {
         accessTokenCookie.setPath("/");
         accessTokenCookie.setMaxAge(60 * 60); // 1시간
 
+        log.info("반환한 aceess token: access_token={}", authResponse.accessToken());
+
         Cookie refreshTokenCookie = new Cookie("refresh_token", authResponse.refreshToken());
         refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setPath("/");
