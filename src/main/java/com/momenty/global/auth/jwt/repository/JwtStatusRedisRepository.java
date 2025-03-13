@@ -18,4 +18,6 @@ public interface JwtStatusRedisRepository extends Repository<JwtStatus, Integer>
     }
 
     JwtStatus save(JwtStatus updatedStatus);
+
+    void deleteById(Integer id);
 }

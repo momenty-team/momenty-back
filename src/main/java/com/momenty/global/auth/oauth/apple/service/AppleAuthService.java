@@ -16,6 +16,7 @@ import com.momenty.global.auth.oauth.apple.dto.AppleTokenResponse;
 import com.momenty.global.auth.oauth.apple.repository.AppleUserRepository;
 import com.momenty.global.auth.oauth.util.ClientSecret;
 import com.momenty.user.domain.User;
+import com.momenty.user.repository.UserRepository;
 import com.momenty.user.service.UserService;
 import io.jsonwebtoken.Claims;
 import java.security.NoSuchAlgorithmException;
@@ -40,6 +41,7 @@ public class AppleAuthService {
     private final AppleJwtStatusRedisRepository appleJwtStatusRedisRepository;
     private final AppleUserRepository appleUserRepository;
     private final JwtStatusRedisRepository jwtStatusRedisRepository;
+    private final UserRepository userRepository;
 
     @Transactional
     public AppleAuthResponse processAppleAuth(String code, String idToken)
@@ -60,7 +62,8 @@ public class AppleAuthService {
         AppleUser appleUser = appleUserRepository.findBySub(sub).orElse(null);
 
         if (appleUser != null) {
-            JwtStatus jwtStatus = generateJwt(appleUser.getId());
+            Integer userId = userRepository.getByEmail(appleUser.getEmail()).getId();
+            JwtStatus jwtStatus = generateJwt(userId);
             return new AppleAuthResponse(appleUser, jwtStatus.getAccessToken(), jwtStatus.getRefreshToken());
         }
 
