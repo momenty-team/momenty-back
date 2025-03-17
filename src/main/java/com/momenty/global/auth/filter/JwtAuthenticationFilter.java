@@ -90,12 +90,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private String extractTokenFromCookie(HttpServletRequest request, String cookieName) {
-        if (request.getCookies() == null) return null;
+        if (request.getCookies() == null) {
+            log.warn("🚨 쿠키가 존재하지 않음");
+            return null;
+        }
         for (Cookie cookie : request.getCookies()) {
             if (cookie.getName().equals(cookieName)) {
                 return cookie.getValue();
             }
         }
+        log.warn("❌ access_token 쿠키 없음");
         return null;
     }
 
