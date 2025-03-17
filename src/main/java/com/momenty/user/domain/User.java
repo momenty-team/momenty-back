@@ -2,6 +2,7 @@ package com.momenty.user.domain;
 
 import static lombok.AccessLevel.*;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.momenty.notification.domain.UserNotificationHistory;
 import com.momenty.notification.domain.UserNotificationSetting;
 import com.momenty.record.domain.UserRecord;
@@ -85,6 +86,7 @@ public class User {
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserNotificationHistory> notificationHistories = new ArrayList<>();
 
