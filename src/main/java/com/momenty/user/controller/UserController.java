@@ -40,7 +40,7 @@ public class UserController {
         Cookie accessTokenCookie = new Cookie("access_token", jwtStatus.getAccessToken());
         accessTokenCookie.setHttpOnly(true);
         accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(60 * 3); // 1시간 -> 3분
+        accessTokenCookie.setMaxAge(60 * 60 * 24 * 14); // 1시간 -> 14일
 
         Cookie refreshTokenCookie = new Cookie("refresh_token", jwtStatus.getRefreshToken());
         refreshTokenCookie.setHttpOnly(true);
