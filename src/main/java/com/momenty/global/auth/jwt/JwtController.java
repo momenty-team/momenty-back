@@ -23,7 +23,7 @@ public class JwtController {
     private final JwtService jwtService;
 
     @PostMapping("/access-token")
-    public ResponseEntity<Void> issueAccessToken(
+        public ResponseEntity<Void> issueAccessToken(
             HttpServletRequest request,
             HttpServletResponse response
     ) {

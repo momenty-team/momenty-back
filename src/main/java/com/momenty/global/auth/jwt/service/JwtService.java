@@ -8,9 +8,11 @@ import com.momenty.global.auth.jwt.domain.JwtStatus;
 import com.momenty.global.auth.jwt.repository.JwtStatusRedisRepository;
 import com.momenty.global.exception.GlobalException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class JwtService {
@@ -46,12 +48,20 @@ public class JwtService {
 
     public JwtStatus issueAccessToken(String refreshToken) {
         if (refreshToken == null || !jwtTokenProvider.validateToken(refreshToken)) {
+            log.error("🚨 유효하지 않은 refresh_token: {}", refreshToken);
             throw new GlobalException(INVALID_TOKEN.getMessage(), INVALID_TOKEN.getStatus());
         }
 
         String userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
         JwtStatus jwtStatus = jwtStatusRedisRepository.getById(Integer.parseInt(userId));
+
+        if (jwtStatus == null) {
+            log.error("🚨 Redis에서 JwtStatus를 찾을 수 없음: userId={}", userId);
+            throw new GlobalException(INVALID_TOKEN.getMessage(), INVALID_TOKEN.getStatus());
+        }
+
         String accessToken = jwtTokenProvider.generateAccessToken(userId);
+        log.info("✅ 새 access_token 발급: {}", accessToken);
 
         JwtStatus updatedStatus = JwtStatus.builder()
                 .id(jwtStatus.getId())
