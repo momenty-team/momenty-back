@@ -4,6 +4,7 @@ import static lombok.AccessLevel.*;
 
 import com.momenty.notification.domain.UserNotificationHistory;
 import com.momenty.notification.domain.UserNotificationSetting;
+import com.momenty.record.domain.UserRecord;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -89,6 +90,9 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserNotificationSetting> notificationSettings = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserRecord> records = new ArrayList<>();
 
     @Builder
     private User(
