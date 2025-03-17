@@ -6,7 +6,9 @@ import com.momenty.global.exception.GlobalException;
 import com.momenty.notification.domain.Notification;
 import com.momenty.notification.domain.NotificationType;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
+import org.springframework.data.repository.query.Param;
 
 public interface NotificationRepository extends Repository<Notification, Integer> {
 
@@ -30,5 +32,18 @@ public interface NotificationRepository extends Repository<Notification, Integer
                         NOT_FOUND_NOTIFICATION.getStatus()
                 )
         );
+    }
+
+    @Query("SELECT n FROM Notification n JOIN FETCH n.notificationType WHERE n.notificationType = :notificationType")
+    Optional<Notification> findByTypeWithNotificationType(@Param("notificationType") NotificationType notificationType);
+
+
+    default Notification getByTypeWithNotificationType(NotificationType notificationType) {
+        return findByTypeWithNotificationType(notificationType)
+                .orElseThrow(() -> new GlobalException(
+                        NOT_FOUND_NOTIFICATION.getMessage(),
+                        NOT_FOUND_NOTIFICATION.getStatus()
+                        )
+                );
     }
 }

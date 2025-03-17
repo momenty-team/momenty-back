@@ -94,12 +94,22 @@ public class NotificationService {
     }
 
     @Transactional
-    public void sendNotification(Integer userId, Integer notificationId, String token, String title, String content, String iconUrl) {
+    public void sendNotification(Integer userId, String userNickname, String token, Notification notification) {
         if (!StringUtils.hasText(token)) {
             log.info("푸시 토큰이 없는 사용자입니다. userId={}", userId);
             return;
         }
 
+        writeNotification(notification, userNickname);
+        String title = notification.getTitle();
+        String content = notification.getContent();
+        String iconUrl = notification.getIconUrl();
+
+        sendNotificationData(userId, token, title, content, iconUrl);
+    }
+
+    @Transactional
+    protected void sendNotificationData(Integer userId, String token, String title, String content, String iconUrl) {
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("to", token);
         requestBody.put("title", title);
@@ -123,7 +133,7 @@ public class NotificationService {
             ResponseEntity<String> response = restTemplate.postForEntity(EXPO_PUSH_API_URL, request, String.class);
             if (response.getStatusCode().is2xxSuccessful()) {
                 log.warn("푸시 알림 전송 성공: status={}, response={}", response.getStatusCode(), response.getBody());
-                addUserNotificationHistory(userId, notificationId);
+                addUserNotificationHistory(userId, title, content, iconUrl);
             } else {
                 log.warn("푸시 알림 전송 실패: status={}, response={}", response.getStatusCode(), response.getBody());
             }
@@ -133,9 +143,20 @@ public class NotificationService {
     }
 
     @Transactional
-    public void addUserNotificationHistory(Integer userId, Integer notificationId) {
+    protected void writeNotification(Notification notification, String userNickname) {
+        String type = notification.getNotificationType().getType();
+
+        String newContent = switch (type) {
+            case "친구신청", "기록알림" -> userNickname + notification.getContent();
+            default -> notification.getContent();
+        };
+
+        notification.updateContent(newContent);
+    }
+
+    @Transactional
+    public void addUserNotificationHistory(Integer userId, String title, String content, String iconUrl) {
         User user = userRepository.getById(userId);
-        Notification notification = notificationRepository.getById(notificationId);
-        userNotificationHistoryRepository.save(UserNotificationHistory.create(user, notification));
+        userNotificationHistoryRepository.save(UserNotificationHistory.create(user, title, content, iconUrl));
     }
 }
