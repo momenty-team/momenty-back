@@ -51,6 +51,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
+        log.info("request uri: {}", requestURI);
+
 
         boolean requiresJwt = false;
         HandlerExecutionChain handlerChainExec = findHandler(request);
