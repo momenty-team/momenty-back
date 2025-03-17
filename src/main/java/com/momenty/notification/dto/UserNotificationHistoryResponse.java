@@ -7,27 +7,10 @@ import java.util.List;
 
 @JsonNaming(SnakeCaseStrategy.class)
 public record UserNotificationHistoryResponse(
-        List<UserNotificationHistoryDto> userNotificationHistories
+        List<UserNotificationHistory> userNotificationHistories
 ) {
 
-    @JsonNaming(SnakeCaseStrategy.class)
-    public record UserNotificationHistoryDto(
-            Integer id,
-            String title,
-            String content,
-            Boolean isRead
-    ) {}
-
     public static UserNotificationHistoryResponse of(List<UserNotificationHistory> histories) {
-        List<UserNotificationHistoryDto> dtoList = histories.stream()
-                .map(history -> new UserNotificationHistoryDto(
-                        history.getNotification().getId(),
-                        history.getNotification().getTitle(),
-                        history.getNotification().getContent(),
-                        history.getIsRead()
-                ))
-                .toList();
-
-        return new UserNotificationHistoryResponse(dtoList);
+        return new UserNotificationHistoryResponse(histories);
     }
 }

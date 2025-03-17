@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,9 +36,17 @@ public class UserNotificationHistory {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "notification_id")
-    private Notification notification;
+    @Size(max = 255)
+    @Column(name = "title", length = 255)
+    private String title;
+
+    @Size(max = 255)
+    @Column(name = "content", length = 255)
+    private String content;
+
+    @Size(max = 255)
+    @Column(name = "icon_url")
+    private String iconUrl;
 
     @Column(name = "is_read")
     private Boolean isRead;
@@ -54,10 +63,12 @@ public class UserNotificationHistory {
         isRead = true;
     }
 
-    public static UserNotificationHistory create(User user, Notification notification) {
+    public static UserNotificationHistory create(User user, String title, String content, String iconUrl) {
         UserNotificationHistory history = new UserNotificationHistory();
         history.user = user;
-        history.notification = notification;
+        history.title = title;
+        history.content = content;
+        history.iconUrl = iconUrl;
         history.isRead = false; // 기본값: 읽지 않음
         return history;
     }
