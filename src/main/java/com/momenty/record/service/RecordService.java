@@ -86,4 +86,9 @@ public class RecordService {
             throw new GlobalException(BAD_RECORD_METHOD.getMessage(), BAD_RECORD_METHOD.getStatus());
         }
     }
+
+    public List<UserRecord> getRecords(Integer userId) {
+        User user = userRepository.getById(userId);
+        return recordRepository.getAllByUser(user);
+    }
 }
