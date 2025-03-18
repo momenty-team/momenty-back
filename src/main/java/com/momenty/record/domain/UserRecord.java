@@ -53,6 +53,9 @@ public class UserRecord {
     @OneToMany(mappedBy = "record", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RecordOption> options = new ArrayList<>();
 
+    @OneToMany(mappedBy = "record", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RecordDetail> recordDetails = new ArrayList<>();
+
     @Builder
     private UserRecord(
             String title,

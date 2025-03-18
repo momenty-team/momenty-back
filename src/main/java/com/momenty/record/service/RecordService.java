@@ -3,11 +3,13 @@ package com.momenty.record.service;
 import static com.momenty.record.exception.RecordExceptionMessage.*;
 
 import com.momenty.global.exception.GlobalException;
+import com.momenty.record.domain.RecordDetail;
 import com.momenty.record.domain.RecordMethod;
 import com.momenty.record.domain.RecordOption;
 import com.momenty.record.domain.RecordUnit;
 import com.momenty.record.domain.UserRecord;
 import com.momenty.record.dto.RecordAddRequest;
+import com.momenty.record.dto.RecordDetailAddRequest;
 import com.momenty.record.repository.RecordOptionRepository;
 import com.momenty.record.repository.RecordRepository;
 import com.momenty.record.repository.RecordUnitRepository;
@@ -90,5 +92,17 @@ public class RecordService {
     public List<UserRecord> getRecords(Integer userId) {
         User user = userRepository.getById(userId);
         return recordRepository.getAllByUser(user);
+    }
+
+    public void addRecordDetail(RecordDetailAddRequest recordDetailAddRequest, Integer userId) {
+        UserRecord record = recordRepository.getById(recordDetailAddRequest.recordId());
+        RecordDetail recordDetail = RecordDetail.builder()
+                .content(recordDetailAddRequest.content())
+                .record(record)
+                .build();
+
+        if (isOptionType(record.getMethod())) {
+
+        }
     }
 }

@@ -3,6 +3,7 @@ package com.momenty.record.controller;
 import com.momenty.global.annotation.UserId;
 import com.momenty.record.domain.UserRecord;
 import com.momenty.record.dto.RecordAddRequest;
+import com.momenty.record.dto.RecordDetailAddRequest;
 import com.momenty.record.dto.RecordsResponse;
 import com.momenty.record.service.RecordService;
 import java.util.List;
@@ -38,5 +39,14 @@ public class RecordController {
         List<UserRecord> userRecords = recordService.getRecords(userId);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(RecordsResponse.of(userRecords));
+    }
+
+    @PostMapping
+    public ResponseEntity<Void> addRecordDetail(
+            @RequestBody RecordDetailAddRequest recordDetailAddRequest,
+            @UserId Integer userId
+    ) {
+        recordService.addRecordDetail(recordDetailAddRequest, userId);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }
