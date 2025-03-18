@@ -11,6 +11,7 @@ import com.momenty.record.domain.RecordUnit;
 import com.momenty.record.domain.UserRecord;
 import com.momenty.record.dto.RecordAddRequest;
 import com.momenty.record.dto.RecordDetailAddRequest;
+import com.momenty.record.dto.RecordDetailDto;
 import com.momenty.record.repository.RecordDetailOptionRepository;
 import com.momenty.record.repository.RecordDetailRepository;
 import com.momenty.record.repository.RecordOptionRepository;
@@ -18,6 +19,10 @@ import com.momenty.record.repository.RecordRepository;
 import com.momenty.record.repository.RecordUnitRepository;
 import com.momenty.user.domain.User;
 import com.momenty.user.repository.UserRepository;
+import com.nimbusds.jose.util.Pair;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -128,5 +133,65 @@ public class RecordService {
                                 NOT_FOUND_RECORD_OPTION.getStatus()
                         )
                 );
+    }
+
+    public List<RecordDetailDto> getRecordDetails(Integer recordId, Integer year, Integer month, Integer day) {
+        Pair<LocalDateTime, LocalDateTime> dateFilter = makeDateFilter(year, month, day);
+        LocalDateTime startDate = dateFilter.getLeft();
+        LocalDateTime endDate = dateFilter.getRight();
+
+        UserRecord userRecord = recordRepository.getById(recordId);
+        List<RecordDetail> recordDetails;
+        if (startDate != null && endDate != null) {
+            recordDetails = recordDetailRepository.findByRecordAndCreatedAtBetween(userRecord, startDate, endDate);
+        } else {
+            recordDetails = recordDetailRepository.findAllByRecord(userRecord);
+        }
+
+        boolean isOptionType = isOptionType(userRecord.getMethod());
+        boolean isNumberType = isNumberType(userRecord.getMethod());
+
+        RecordUnit recordUnit = (isOptionType || isNumberType)
+                ? recordUnitRepository.getByRecord(userRecord)
+                : null;
+
+        return recordDetails.stream()
+                .map(recordDetail -> {
+                    List<String> content;
+
+                    if (isOptionType) {
+                        content = recordDetailOptionRepository.findByRecordDetail(recordDetail).stream()
+                                .map(option -> option.getRecordOption().getOption() + recordUnit.getUnit())
+                                .toList();
+                    } else if (isNumberType) {
+                        content = List.of(recordDetail.getContent() + recordUnit.getUnit());
+                    } else {
+                        content = List.of(recordDetail.getContent());
+                    }
+
+                    return RecordDetailDto.of(recordDetail, content);
+                })
+                .toList();
+    }
+
+    private Pair<LocalDateTime, LocalDateTime> makeDateFilter(Integer year, Integer month, Integer day) {
+        if (year != null && month != null && day != null) {
+            return Pair.of(
+                    LocalDateTime.of(year, month, day, 0, 0, 0),
+                    LocalDateTime.of(year, month, day, 23, 59, 59)
+            );
+        } else if (year != null && month != null) {
+            YearMonth yearMonth = YearMonth.of(year, month);
+            return Pair.of(
+                    yearMonth.atDay(1).atStartOfDay(),
+                    yearMonth.atEndOfMonth().atTime(23, 59, 59)
+            );
+        } else if (year != null) {
+            return Pair.of(
+                    LocalDateTime.of(year, 1, 1, 0, 0, 0),
+                    LocalDateTime.of(year, 12, 31, 23, 59, 59)
+            );
+        }
+        return Pair.of(null, null);
     }
 }

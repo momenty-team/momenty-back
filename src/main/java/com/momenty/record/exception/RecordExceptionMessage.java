@@ -7,7 +7,8 @@ import org.springframework.http.HttpStatus;
 public enum RecordExceptionMessage {
     BAD_RECORD_METHOD("잘못된 기록 방식입니다.", HttpStatus.BAD_REQUEST),
     NOT_FOUND_RECORD("기록을 찾을 수 없습니다.", HttpStatus.BAD_REQUEST),
-    NOT_FOUND_RECORD_OPTION("옵션을 찾을 수 없습니다.", HttpStatus.BAD_REQUEST)
+    NOT_FOUND_RECORD_OPTION("옵션을 찾을 수 없습니다.", HttpStatus.BAD_REQUEST),
+    NOT_FOUND_RECORD_UNIT("단위를 찾을 수 없습니다.", HttpStatus.BAD_REQUEST),
     ;
 
     private final String message;

@@ -1,9 +1,12 @@
 package com.momenty.record.controller;
 
 import com.momenty.global.annotation.UserId;
+import com.momenty.record.domain.RecordDetail;
 import com.momenty.record.domain.UserRecord;
 import com.momenty.record.dto.RecordAddRequest;
 import com.momenty.record.dto.RecordDetailAddRequest;
+import com.momenty.record.dto.RecordDetailDto;
+import com.momenty.record.dto.RecordDetailsResponse;
 import com.momenty.record.dto.RecordsResponse;
 import com.momenty.record.service.RecordService;
 import java.util.List;
@@ -15,6 +18,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -50,5 +54,18 @@ public class RecordController {
     ) {
         recordService.addRecordDetail(recordId, recordDetailAddRequest);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @GetMapping("/{record_id}/details")
+    public ResponseEntity<RecordDetailsResponse> getRecordDetail(
+            @PathVariable("record_id") Integer recordId,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer day,
+            @UserId Integer userId
+    ) {
+        List<RecordDetailDto> recordDetails = recordService.getRecordDetails(recordId, year, month, day);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(RecordDetailsResponse.of(recordDetails));
     }
 }
