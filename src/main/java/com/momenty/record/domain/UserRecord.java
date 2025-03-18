@@ -52,7 +52,7 @@ public class UserRecord {
     private RecordUnit recordUnit;
 
     @OneToMany(mappedBy = "record", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<RecordOption> options = new ArrayList<>();
+    private List<RecordOption> recordOptions = new ArrayList<>();
 
     @OneToMany(mappedBy = "record", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RecordDetail> recordDetails = new ArrayList<>();
