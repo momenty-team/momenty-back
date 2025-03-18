@@ -26,6 +26,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "record_option")
 @NoArgsConstructor(access = PROTECTED)
 public class RecordOption {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

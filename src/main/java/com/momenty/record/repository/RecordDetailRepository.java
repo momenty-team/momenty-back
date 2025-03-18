@@ -5,4 +5,5 @@ import org.springframework.data.repository.Repository;
 
 public interface RecordDetailRepository extends Repository<RecordDetail, Integer> {
 
+    void save(RecordDetail recordDetail);
 }
