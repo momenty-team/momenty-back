@@ -9,6 +9,7 @@ public enum RecordExceptionMessage {
     NOT_FOUND_RECORD("기록을 찾을 수 없습니다.", HttpStatus.BAD_REQUEST),
     NOT_FOUND_RECORD_OPTION("옵션을 찾을 수 없습니다.", HttpStatus.BAD_REQUEST),
     NOT_FOUND_RECORD_UNIT("단위를 찾을 수 없습니다.", HttpStatus.BAD_REQUEST),
+    NOT_FOUND_RECORD_DETAIL("기록 데이터를 찾을 수 없습니다.", HttpStatus.BAD_REQUEST),
     ;
 
     private final String message;
