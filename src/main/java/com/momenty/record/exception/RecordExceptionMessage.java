@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 public enum RecordExceptionMessage {
-    BAD_RECORD_METHOD("잘못된 기록 방식입니다.", HttpStatus.CONFLICT),
+    BAD_RECORD_METHOD("잘못된 기록 방식입니다.", HttpStatus.BAD_REQUEST),
     ;
 
     private final String message;

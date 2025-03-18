@@ -13,6 +13,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -32,4 +33,19 @@ public class RecordOption {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "record_id")
+    private UserRecord record;
+
+    @Builder
+    private RecordOption(
+            String option,
+            User user,
+            UserRecord userRecord
+    ) {
+        this.option = option;
+        this.user = user;
+        this.record = userRecord;
+    }
 }
