@@ -6,6 +6,7 @@ import com.momenty.record.domain.UserRecord;
 import com.momenty.record.dto.RecordAddRequest;
 import com.momenty.record.dto.RecordDetailAddRequest;
 import com.momenty.record.dto.RecordDetailDto;
+import com.momenty.record.dto.RecordDetailResponse;
 import com.momenty.record.dto.RecordDetailsResponse;
 import com.momenty.record.dto.RecordsResponse;
 import com.momenty.record.service.RecordService;
@@ -57,7 +58,7 @@ public class RecordController {
     }
 
     @GetMapping("/{record_id}/details")
-    public ResponseEntity<RecordDetailsResponse> getRecordDetail(
+    public ResponseEntity<RecordDetailsResponse> getRecordDetails(
             @PathVariable("record_id") Integer recordId,
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month,
@@ -67,5 +68,16 @@ public class RecordController {
         List<RecordDetailDto> recordDetails = recordService.getRecordDetails(recordId, year, month, day);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(RecordDetailsResponse.of(recordDetails));
+    }
+
+    @GetMapping("/{record_id}/details/{detail_id}")
+    public ResponseEntity<RecordDetailResponse> getRecordDetail(
+            @PathVariable("record_id") Integer recordId,
+            @PathVariable("detail_id") Integer detailId,
+            @UserId Integer userId
+    ) {
+        RecordDetailDto recordDetail = recordService.getRecordDetail(recordId, detailId);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(RecordDetailResponse.of(recordDetail));
     }
 }

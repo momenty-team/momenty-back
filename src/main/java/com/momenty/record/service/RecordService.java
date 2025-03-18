@@ -156,21 +156,7 @@ public class RecordService {
                 : null;
 
         return recordDetails.stream()
-                .map(recordDetail -> {
-                    List<String> content;
-
-                    if (isOptionType) {
-                        content = recordDetailOptionRepository.findByRecordDetail(recordDetail).stream()
-                                .map(option -> option.getRecordOption().getOption() + recordUnit.getUnit())
-                                .toList();
-                    } else if (isNumberType) {
-                        content = List.of(recordDetail.getContent() + recordUnit.getUnit());
-                    } else {
-                        content = List.of(recordDetail.getContent());
-                    }
-
-                    return RecordDetailDto.of(recordDetail, content);
-                })
+                .map(recordDetail -> getRecordDetailDto(recordDetail, isOptionType, isNumberType, recordUnit))
                 .toList();
     }
 
@@ -193,5 +179,40 @@ public class RecordService {
             );
         }
         return Pair.of(null, null);
+    }
+
+    public RecordDetailDto getRecordDetail(Integer recordId, Integer detailId) {
+        UserRecord userRecord = recordRepository.getById(recordId);
+        RecordDetail recordDetail = recordDetailRepository.getById(detailId);
+
+        boolean isOptionType = isOptionType(userRecord.getMethod());
+        boolean isNumberType = isNumberType(userRecord.getMethod());
+
+        RecordUnit recordUnit = (isOptionType || isNumberType)
+                ? recordUnitRepository.getByRecord(userRecord)
+                : null;
+
+        return getRecordDetailDto(recordDetail, isOptionType, isNumberType, recordUnit);
+    }
+
+    private RecordDetailDto getRecordDetailDto(
+            RecordDetail recordDetail,
+            boolean isOptionType,
+            boolean isNumberType,
+            RecordUnit recordUnit
+    ) {
+        List<String> content;
+
+        if (isOptionType) {
+            content = recordDetailOptionRepository.findByRecordDetail(recordDetail).stream()
+                    .map(option -> option.getRecordOption().getOption() + recordUnit.getUnit())
+                    .toList();
+        } else if (isNumberType) {
+            content = List.of(recordDetail.getContent() + recordUnit.getUnit());
+        } else {
+            content = List.of(recordDetail.getContent());
+        }
+
+        return RecordDetailDto.of(recordDetail, content);
     }
 }
