@@ -4,12 +4,15 @@ import static com.momenty.record.exception.RecordExceptionMessage.*;
 
 import com.momenty.global.exception.GlobalException;
 import com.momenty.record.domain.RecordDetail;
+import com.momenty.record.domain.RecordDetailOption;
 import com.momenty.record.domain.RecordMethod;
 import com.momenty.record.domain.RecordOption;
 import com.momenty.record.domain.RecordUnit;
 import com.momenty.record.domain.UserRecord;
 import com.momenty.record.dto.RecordAddRequest;
 import com.momenty.record.dto.RecordDetailAddRequest;
+import com.momenty.record.repository.RecordDetailOptionRepository;
+import com.momenty.record.repository.RecordDetailRepository;
 import com.momenty.record.repository.RecordOptionRepository;
 import com.momenty.record.repository.RecordRepository;
 import com.momenty.record.repository.RecordUnitRepository;
@@ -29,6 +32,8 @@ public class RecordService {
     private final UserRepository userRepository;
     private final RecordOptionRepository recordOptionRepository;
     private final RecordUnitRepository recordUnitRepository;
+    private final RecordDetailOptionRepository recordDetailOptionRepository;
+    private final RecordDetailRepository recordDetailRepository;
 
     @Transactional
     public void addRecord(RecordAddRequest recordAddRequest, Integer userId) {
@@ -94,15 +99,34 @@ public class RecordService {
         return recordRepository.getAllByUser(user);
     }
 
-    public void addRecordDetail(RecordDetailAddRequest recordDetailAddRequest, Integer userId) {
-        UserRecord record = recordRepository.getById(recordDetailAddRequest.recordId());
+    @Transactional
+    public void addRecordDetail(Integer recordId, RecordDetailAddRequest recordDetailAddRequest) {
+        UserRecord record = recordRepository.getById(recordId);
         RecordDetail recordDetail = RecordDetail.builder()
                 .content(recordDetailAddRequest.content())
                 .record(record)
                 .build();
+        recordDetailRepository.save(recordDetail);
 
         if (isOptionType(record.getMethod())) {
+            RecordOption recordOption = getRecordOption(recordDetailAddRequest.optionId());
 
+            RecordDetailOption recordDetailOption = RecordDetailOption.builder()
+                    .recordDetail(recordDetail)
+                    .recordOption(recordOption)
+                    .build();
+
+            recordDetailOptionRepository.save(recordDetailOption);
         }
+    }
+
+    private RecordOption getRecordOption(Integer recordOptionId) {
+        return recordOptionRepository.findById(recordOptionId)
+                .orElseThrow(
+                        () -> new GlobalException(
+                                NOT_FOUND_RECORD_OPTION.getMessage(),
+                                NOT_FOUND_RECORD_OPTION.getStatus()
+                        )
+                );
     }
 }
