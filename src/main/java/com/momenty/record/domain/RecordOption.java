@@ -61,4 +61,8 @@ public class RecordOption {
     public void addUnit(String unit) {
         this.option = this.option + unit;
     }
+
+    public void addOption(String option) {
+        this.option = option;
+    }
 }

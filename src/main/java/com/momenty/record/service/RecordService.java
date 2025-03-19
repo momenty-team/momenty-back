@@ -13,6 +13,7 @@ import com.momenty.record.dto.RecordAddRequest;
 import com.momenty.record.dto.RecordDetailAddRequest;
 import com.momenty.record.dto.RecordDetailDto;
 import com.momenty.record.dto.RecordOptionAddRequest;
+import com.momenty.record.dto.RecordOptionUpdateRequest;
 import com.momenty.record.dto.RecordUnitAddRequest;
 import com.momenty.record.repository.RecordDetailOptionRepository;
 import com.momenty.record.repository.RecordDetailRepository;
@@ -254,5 +255,20 @@ public class RecordService {
         }
 
         record.updateUnit(recordUnitAddRequest.unit());
+    }
+
+    @Transactional
+    public void updateRecordOption(
+            RecordOptionUpdateRequest recordOptionUpdateRequest,
+            Integer recordId,
+            Integer optionId
+    ) {
+        UserRecord record = recordRepository.getById(recordId);
+        if (!isOptionType(record.getMethod())) {
+            throw new GlobalException(METHOD_NOT_RECORD_OPTION.getMessage(), METHOD_NOT_RECORD_OPTION.getStatus());
+        }
+
+        RecordOption recordOption = getRecordOption(optionId);
+        recordOption.addOption(recordOptionUpdateRequest.option());
     }
 }
