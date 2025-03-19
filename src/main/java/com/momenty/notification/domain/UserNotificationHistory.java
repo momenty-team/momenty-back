@@ -51,6 +51,10 @@ public class UserNotificationHistory {
     @Column(name = "is_read")
     private Boolean isRead;
 
+    @Size(max = 255)
+    @Column(name = "url")
+    private String url;
+
     @CreatedDate
     @Column(name = "created_at", columnDefinition = "TIMESTAMP", nullable = false, updatable = false)
     private LocalDateTime createdAt;
