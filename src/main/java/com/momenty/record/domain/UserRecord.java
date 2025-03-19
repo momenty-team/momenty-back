@@ -67,4 +67,8 @@ public class UserRecord {
         this.method = method;
         this.user = user;
     }
+
+    public void updateUnit(String unit) {
+        this.recordUnit.updateUnit(unit);
+    }
 }

@@ -53,4 +53,8 @@ public class RecordUnit {
         this.user = user;
         this.userRecord = userRecord;
     }
+
+    public void updateUnit(String unit) {
+        this.unit = unit;
+    }
 }

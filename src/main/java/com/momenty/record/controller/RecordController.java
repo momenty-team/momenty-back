@@ -10,6 +10,7 @@ import com.momenty.record.dto.RecordDetailResponse;
 import com.momenty.record.dto.RecordDetailsResponse;
 import com.momenty.record.dto.RecordOptionAddRequest;
 import com.momenty.record.dto.RecordOptionsResponse;
+import com.momenty.record.dto.RecordUnitAddRequest;
 import com.momenty.record.dto.RecordsResponse;
 import com.momenty.record.service.RecordService;
 import java.util.List;
@@ -19,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -94,12 +96,32 @@ public class RecordController {
     }
 
     @PostMapping("/{record_id}/options")
-    public ResponseEntity<Void> addRecord(
+    public ResponseEntity<Void> addRecordOption(
             @PathVariable("record_id") Integer recordId,
             @RequestBody RecordOptionAddRequest recordOptionAddRequest,
             @UserId Integer userId
     ) {
         recordService.addRecordOption(recordOptionAddRequest, recordId, userId);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @PostMapping("/{record_id}/unit")
+    public ResponseEntity<Void> addRecordUnit(
+            @PathVariable("record_id") Integer recordId,
+            @RequestBody RecordUnitAddRequest recordUnitAddRequest,
+            @UserId Integer userId
+    ) {
+        recordService.addRecordUnit(recordUnitAddRequest, recordId);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @PutMapping("/{record_id}/unit")
+    public ResponseEntity<Void> updateRecordUnit(
+            @PathVariable("record_id") Integer recordId,
+            @RequestBody RecordUnitAddRequest recordUnitAddRequest,
+            @UserId Integer userId
+    ) {
+        recordService.addRecordUnit(recordUnitAddRequest, recordId);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }
