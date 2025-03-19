@@ -179,4 +179,14 @@ public class RecordController {
         recordService.deleteRecordDetail(detailId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
+
+    @DeleteMapping("/{record_id}/options/{option_id}")
+    public ResponseEntity<Void> deleteRecordOption(
+            @PathVariable("record_id") Integer recordId,
+            @PathVariable("option_id") Integer optionId,
+            @UserId Integer userId
+    ) {
+        recordService.deleteRecordOption(optionId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
 }

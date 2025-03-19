@@ -298,4 +298,15 @@ public class RecordService {
     public void deleteRecordDetail(Integer detailId) {
         recordDetailRepository.deleteById(detailId);
     }
+
+    @Transactional
+    public void deleteRecordOption(Integer optionId) {
+        RecordOption recordOption = getRecordOption(optionId);
+        List<RecordDetailOption> recordDetailOptions = recordDetailOptionRepository.findAllByRecordOption(recordOption);
+
+        if (!recordDetailOptions.isEmpty()) {
+            throw new GlobalException(USED_OPTION_NOT_DELETE.getMessage(), USED_OPTION_NOT_DELETE.getStatus());
+        }
+        recordOptionRepository.deleteById(optionId);
+    }
 }
