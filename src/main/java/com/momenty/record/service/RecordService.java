@@ -288,4 +288,14 @@ public class RecordService {
         RecordDetail recordDetail = recordDetailRepository.getById(detailId);
         recordDetail.updateContent(recordDetailUpdateRequest.content());
     }
+
+    @Transactional
+    public void deleteRecord(Integer recordId) {
+        recordRepository.deleteById(recordId);
+    }
+
+    @Transactional
+    public void deleteRecordDetail(Integer detailId) {
+        recordDetailRepository.deleteById(detailId);
+    }
 }

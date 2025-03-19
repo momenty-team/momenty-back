@@ -25,4 +25,6 @@ public interface RecordRepository extends Repository<UserRecord, Integer> {
                 )
         );
     }
+
+    void deleteById(Integer id);
 }
