@@ -57,4 +57,8 @@ public class RecordOption {
         this.user = user;
         this.record = userRecord;
     }
+
+    public void addUnit(String unit) {
+        this.option = this.option + unit;
+    }
 }

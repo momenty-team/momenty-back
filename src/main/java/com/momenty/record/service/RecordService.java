@@ -12,6 +12,7 @@ import com.momenty.record.domain.UserRecord;
 import com.momenty.record.dto.RecordAddRequest;
 import com.momenty.record.dto.RecordDetailAddRequest;
 import com.momenty.record.dto.RecordDetailDto;
+import com.momenty.record.exception.RecordExceptionMessage;
 import com.momenty.record.repository.RecordDetailOptionRepository;
 import com.momenty.record.repository.RecordDetailRepository;
 import com.momenty.record.repository.RecordOptionRepository;
@@ -214,5 +215,17 @@ public class RecordService {
         }
 
         return RecordDetailDto.of(recordDetail, content);
+    }
+
+    public List<RecordOption> getRecordOptions(Integer recordId) {
+        UserRecord record = recordRepository.getById(recordId);
+        if (!isOptionType(record.getMethod())) {
+            throw new GlobalException(METHOD_NOT_RECORD_OPTION.getMessage(), METHOD_NOT_RECORD_OPTION.getStatus());
+        }
+        List<RecordOption> recordOptions = recordOptionRepository.findAllByRecord(record);
+
+        String unit = record.getRecordUnit().getUnit();
+        recordOptions.forEach(recordOption -> recordOption.addUnit(unit));
+        return recordOptions;
     }
 }
