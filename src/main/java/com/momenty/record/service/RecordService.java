@@ -291,11 +291,13 @@ public class RecordService {
 
     @Transactional
     public void deleteRecord(Integer recordId) {
+        recordRepository.getById(recordId);
         recordRepository.deleteById(recordId);
     }
 
     @Transactional
     public void deleteRecordDetail(Integer detailId) {
+        recordDetailRepository.getById(detailId);
         recordDetailRepository.deleteById(detailId);
     }
 
