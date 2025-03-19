@@ -71,4 +71,8 @@ public class UserRecord {
     public void updateUnit(String unit) {
         this.recordUnit.updateUnit(unit);
     }
+
+    public void updateTitle(String title) {
+        this.title = title;
+    }
 }
