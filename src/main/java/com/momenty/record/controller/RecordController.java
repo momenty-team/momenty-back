@@ -9,6 +9,7 @@ import com.momenty.record.dto.RecordDetailDto;
 import com.momenty.record.dto.RecordDetailResponse;
 import com.momenty.record.dto.RecordDetailsResponse;
 import com.momenty.record.dto.RecordOptionAddRequest;
+import com.momenty.record.dto.RecordOptionUpdateRequest;
 import com.momenty.record.dto.RecordOptionsResponse;
 import com.momenty.record.dto.RecordUnitAddRequest;
 import com.momenty.record.dto.RecordsResponse;
@@ -122,6 +123,17 @@ public class RecordController {
             @UserId Integer userId
     ) {
         recordService.addRecordUnit(recordUnitAddRequest, recordId);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PutMapping("/{record_id}/options/{option_id}")
+    public ResponseEntity<Void> updateRecordOption(
+            @PathVariable("record_id") Integer recordId,
+            @PathVariable("option_id") Integer optionId,
+            @RequestBody RecordOptionUpdateRequest recordOptionUpdateRequest,
+            @UserId Integer userId
+    ) {
+        recordService.updateRecordOption(recordOptionUpdateRequest, recordId, optionId);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 }
