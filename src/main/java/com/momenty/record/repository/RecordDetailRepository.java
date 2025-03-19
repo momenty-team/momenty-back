@@ -31,4 +31,6 @@ public interface RecordDetailRepository extends Repository<RecordDetail, Integer
                 )
         );
     }
+
+    void deleteById(Integer detailId);
 }
