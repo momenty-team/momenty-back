@@ -63,4 +63,8 @@ public class RecordDetail {
         this.content = content;
         this.record = record;
     }
+
+    public void updateContent(String content) {
+        this.content = content;
+    }
 }

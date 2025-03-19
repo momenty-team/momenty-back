@@ -12,6 +12,7 @@ import com.momenty.record.domain.UserRecord;
 import com.momenty.record.dto.RecordAddRequest;
 import com.momenty.record.dto.RecordDetailAddRequest;
 import com.momenty.record.dto.RecordDetailDto;
+import com.momenty.record.dto.RecordDetailUpdateRequest;
 import com.momenty.record.dto.RecordOptionAddRequest;
 import com.momenty.record.dto.RecordOptionUpdateRequest;
 import com.momenty.record.dto.RecordUnitAddRequest;
@@ -277,5 +278,14 @@ public class RecordService {
     public void updateRecord(RecordUpdateRequest recordUpdateRequest, Integer recordId) {
         UserRecord record = recordRepository.getById(recordId);
         record.updateTitle(recordUpdateRequest.title());
+    }
+
+    @Transactional
+    public void updateRecordDetail(
+            RecordDetailUpdateRequest recordDetailUpdateRequest,
+            Integer detailId
+    ) {
+        RecordDetail recordDetail = recordDetailRepository.getById(detailId);
+        recordDetail.updateContent(recordDetailUpdateRequest.content());
     }
 }
