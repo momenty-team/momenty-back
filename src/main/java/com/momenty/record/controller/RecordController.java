@@ -2,12 +2,14 @@ package com.momenty.record.controller;
 
 import com.momenty.global.annotation.UserId;
 import com.momenty.record.domain.RecordDetail;
+import com.momenty.record.domain.RecordOption;
 import com.momenty.record.domain.UserRecord;
 import com.momenty.record.dto.RecordAddRequest;
 import com.momenty.record.dto.RecordDetailAddRequest;
 import com.momenty.record.dto.RecordDetailDto;
 import com.momenty.record.dto.RecordDetailResponse;
 import com.momenty.record.dto.RecordDetailsResponse;
+import com.momenty.record.dto.RecordOptionsResponse;
 import com.momenty.record.dto.RecordsResponse;
 import com.momenty.record.service.RecordService;
 import java.util.List;
@@ -79,5 +81,15 @@ public class RecordController {
         RecordDetailDto recordDetail = recordService.getRecordDetail(recordId, detailId);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(RecordDetailResponse.of(recordDetail));
+    }
+
+    @GetMapping("/{record_id}/options")
+    public ResponseEntity<RecordOptionsResponse> getRecordOptions(
+            @PathVariable("record_id") Integer recordId,
+            @UserId Integer userId
+    ) {
+        List<RecordOption> recordOptions = recordService.getRecordOptions(recordId);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(RecordOptionsResponse.of(recordOptions));
     }
 }
