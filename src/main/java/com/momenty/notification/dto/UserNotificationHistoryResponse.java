@@ -19,6 +19,7 @@ public record UserNotificationHistoryResponse(
             String content,
             String iconUrl,
             Boolean isRead,
+            String url,
 
             @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
             LocalDateTime createdAt,
@@ -35,6 +36,7 @@ public record UserNotificationHistoryResponse(
                         history.getContent(),
                         history.getIconUrl(),
                         history.getIsRead(),
+                        history.getUrl(),
                         history.getCreatedAt(),
                         history.getUpdatedAt()
                 ))
