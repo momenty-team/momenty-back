@@ -1,7 +1,6 @@
 package com.momenty.record.controller;
 
 import com.momenty.global.annotation.UserId;
-import com.momenty.record.domain.RecordDetail;
 import com.momenty.record.domain.RecordOption;
 import com.momenty.record.domain.UserRecord;
 import com.momenty.record.dto.RecordAddRequest;
@@ -9,6 +8,7 @@ import com.momenty.record.dto.RecordDetailAddRequest;
 import com.momenty.record.dto.RecordDetailDto;
 import com.momenty.record.dto.RecordDetailResponse;
 import com.momenty.record.dto.RecordDetailsResponse;
+import com.momenty.record.dto.RecordOptionAddRequest;
 import com.momenty.record.dto.RecordOptionsResponse;
 import com.momenty.record.dto.RecordsResponse;
 import com.momenty.record.service.RecordService;
@@ -91,5 +91,15 @@ public class RecordController {
         List<RecordOption> recordOptions = recordService.getRecordOptions(recordId);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(RecordOptionsResponse.of(recordOptions));
+    }
+
+    @PostMapping("/{record_id}/options")
+    public ResponseEntity<Void> addRecord(
+            @PathVariable("record_id") Integer recordId,
+            @RequestBody RecordOptionAddRequest recordOptionAddRequest,
+            @UserId Integer userId
+    ) {
+        recordService.addRecordOption(recordOptionAddRequest, recordId, userId);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }

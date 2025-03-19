@@ -12,7 +12,7 @@ import com.momenty.record.domain.UserRecord;
 import com.momenty.record.dto.RecordAddRequest;
 import com.momenty.record.dto.RecordDetailAddRequest;
 import com.momenty.record.dto.RecordDetailDto;
-import com.momenty.record.exception.RecordExceptionMessage;
+import com.momenty.record.dto.RecordOptionAddRequest;
 import com.momenty.record.repository.RecordDetailOptionRepository;
 import com.momenty.record.repository.RecordDetailRepository;
 import com.momenty.record.repository.RecordOptionRepository;
@@ -23,7 +23,6 @@ import com.momenty.user.repository.UserRepository;
 import com.nimbusds.jose.util.Pair;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -227,5 +226,22 @@ public class RecordService {
         String unit = record.getRecordUnit().getUnit();
         recordOptions.forEach(recordOption -> recordOption.addUnit(unit));
         return recordOptions;
+    }
+
+    @Transactional
+    public void addRecordOption(RecordOptionAddRequest recordOptionAddRequest, Integer recordId, Integer userId) {
+        UserRecord record = recordRepository.getById(recordId);
+        if (!isOptionType(record.getMethod())) {
+            throw new GlobalException(METHOD_NOT_RECORD_OPTION.getMessage(), METHOD_NOT_RECORD_OPTION.getStatus());
+        }
+
+        User user = userRepository.getById(userId);
+        record.getRecordOptions()
+                .add(RecordOption.builder()
+                                .user(user)
+                                .userRecord(record)
+                                .option(recordOptionAddRequest.option().toUpperCase())
+                                .build()
+                );
     }
 }
