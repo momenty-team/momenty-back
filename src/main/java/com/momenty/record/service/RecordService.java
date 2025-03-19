@@ -13,6 +13,7 @@ import com.momenty.record.dto.RecordAddRequest;
 import com.momenty.record.dto.RecordDetailAddRequest;
 import com.momenty.record.dto.RecordDetailDto;
 import com.momenty.record.dto.RecordOptionAddRequest;
+import com.momenty.record.dto.RecordUnitAddRequest;
 import com.momenty.record.repository.RecordDetailOptionRepository;
 import com.momenty.record.repository.RecordDetailRepository;
 import com.momenty.record.repository.RecordOptionRepository;
@@ -243,5 +244,15 @@ public class RecordService {
                                 .option(recordOptionAddRequest.option().toUpperCase())
                                 .build()
                 );
+    }
+
+    @Transactional
+    public void addRecordUnit(RecordUnitAddRequest recordUnitAddRequest, Integer recordId) {
+        UserRecord record = recordRepository.getById(recordId);
+        if (!isOptionType(record.getMethod()) && !isNumberType(record.getMethod())) {
+            throw new GlobalException(METHOD_NOT_NEED_UNIT.getMessage(), METHOD_NOT_NEED_UNIT.getStatus());
+        }
+
+        record.updateUnit(recordUnitAddRequest.unit());
     }
 }
