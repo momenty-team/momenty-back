@@ -34,13 +34,12 @@ public class AppleAuthController {
             @RequestParam(value = "state", required = false) String state,
             @RequestParam(value = "code", required = false) String code,
             @RequestParam(value = "id_token", required = false) String idToken,
-            @RequestParam(value = "user", required = false) String userJson,
             HttpServletResponse response
     ) throws NoSuchAlgorithmException, InvalidKeySpecException, JsonProcessingException {
 
         log.info("Apple Callback 호출됨: state={}, code={}, id_token={}", state, code, idToken);
 
-        AppleAuthResponse authResponse = appleAuthService.processAppleAuth(code, idToken, userJson);
+        AppleAuthResponse authResponse = appleAuthService.processAppleAuth(code, idToken);
 
         Cookie accessTokenCookie = new Cookie("access_token", authResponse.accessToken());
         accessTokenCookie.setHttpOnly(true);
