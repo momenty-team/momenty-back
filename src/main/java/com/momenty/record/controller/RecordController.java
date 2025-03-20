@@ -16,6 +16,7 @@ import com.momenty.record.dto.RecordUnitAddRequest;
 import com.momenty.record.dto.RecordUpdateRequest;
 import com.momenty.record.dto.RecordsResponse;
 import com.momenty.record.service.RecordService;
+import io.swagger.v3.oas.annotations.Parameter;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -40,7 +41,7 @@ public class RecordController {
     @PostMapping
     public ResponseEntity<Void> addRecord(
             @RequestBody RecordAddRequest recordAddRequest,
-            @UserId Integer userId
+            @Parameter(hidden = true) @UserId Integer userId
     ) {
         recordService.addRecord(recordAddRequest, userId);
         return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -48,7 +49,7 @@ public class RecordController {
 
     @GetMapping
     public ResponseEntity<RecordsResponse> getRecords(
-            @UserId Integer userId
+            @Parameter(hidden = true) @UserId Integer userId
     ) {
         List<UserRecord> userRecords = recordService.getRecords(userId);
         return ResponseEntity.status(HttpStatus.OK)
@@ -59,7 +60,7 @@ public class RecordController {
     public ResponseEntity<Void> addRecordDetail(
             @PathVariable("record_id") Integer recordId,
             @RequestBody RecordDetailAddRequest recordDetailAddRequest,
-            @UserId Integer userId
+            @Parameter(hidden = true) @UserId Integer userId
     ) {
         recordService.addRecordDetail(recordId, recordDetailAddRequest);
         return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -71,7 +72,7 @@ public class RecordController {
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month,
             @RequestParam(required = false) Integer day,
-            @UserId Integer userId
+            @Parameter(hidden = true) @UserId Integer userId
     ) {
         List<RecordDetailDto> recordDetails = recordService.getRecordDetails(recordId, year, month, day);
         return ResponseEntity.status(HttpStatus.OK)
@@ -82,7 +83,7 @@ public class RecordController {
     public ResponseEntity<RecordDetailResponse> getRecordDetail(
             @PathVariable("record_id") Integer recordId,
             @PathVariable("detail_id") Integer detailId,
-            @UserId Integer userId
+            @Parameter(hidden = true) @UserId Integer userId
     ) {
         RecordDetailDto recordDetail = recordService.getRecordDetail(recordId, detailId);
         return ResponseEntity.status(HttpStatus.OK)
@@ -92,7 +93,7 @@ public class RecordController {
     @GetMapping("/{record_id}/options")
     public ResponseEntity<RecordOptionsResponse> getRecordOptions(
             @PathVariable("record_id") Integer recordId,
-            @UserId Integer userId
+            @Parameter(hidden = true) @UserId Integer userId
     ) {
         List<RecordOption> recordOptions = recordService.getRecordOptions(recordId);
         return ResponseEntity.status(HttpStatus.OK)
@@ -103,7 +104,7 @@ public class RecordController {
     public ResponseEntity<Void> addRecordOption(
             @PathVariable("record_id") Integer recordId,
             @RequestBody RecordOptionAddRequest recordOptionAddRequest,
-            @UserId Integer userId
+            @Parameter(hidden = true) @UserId Integer userId
     ) {
         recordService.addRecordOption(recordOptionAddRequest, recordId, userId);
         return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -113,7 +114,7 @@ public class RecordController {
     public ResponseEntity<Void> addRecordUnit(
             @PathVariable("record_id") Integer recordId,
             @RequestBody RecordUnitAddRequest recordUnitAddRequest,
-            @UserId Integer userId
+            @Parameter(hidden = true) @UserId Integer userId
     ) {
         recordService.addRecordUnit(recordUnitAddRequest, recordId);
         return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -123,7 +124,7 @@ public class RecordController {
     public ResponseEntity<Void> updateRecordUnit(
             @PathVariable("record_id") Integer recordId,
             @RequestBody RecordUnitAddRequest recordUnitAddRequest,
-            @UserId Integer userId
+            @Parameter(hidden = true) @UserId Integer userId
     ) {
         recordService.addRecordUnit(recordUnitAddRequest, recordId);
         return ResponseEntity.status(HttpStatus.OK).build();
@@ -134,7 +135,7 @@ public class RecordController {
             @PathVariable("record_id") Integer recordId,
             @PathVariable("option_id") Integer optionId,
             @RequestBody RecordOptionUpdateRequest recordOptionUpdateRequest,
-            @UserId Integer userId
+            @Parameter(hidden = true) @UserId Integer userId
     ) {
         recordService.updateRecordOption(recordOptionUpdateRequest, recordId, optionId);
         return ResponseEntity.status(HttpStatus.OK).build();
@@ -144,7 +145,7 @@ public class RecordController {
     public ResponseEntity<Void> updateRecord(
             @PathVariable("record_id") Integer recordId,
             @RequestBody RecordUpdateRequest recordUpdateRequest,
-            @UserId Integer userId
+            @Parameter(hidden = true) @UserId Integer userId
     ) {
         recordService.updateRecord(recordUpdateRequest, recordId);
         return ResponseEntity.status(HttpStatus.OK).build();
@@ -155,7 +156,7 @@ public class RecordController {
             @PathVariable("record_id") Integer recordId,
             @PathVariable("detail_id") Integer detailId,
             @RequestBody RecordDetailUpdateRequest recordDetailUpdateRequest,
-            @UserId Integer userId
+            @Parameter(hidden = true) @UserId Integer userId
     ) {
         recordService.updateRecordDetail(recordDetailUpdateRequest, detailId);
         return ResponseEntity.status(HttpStatus.OK).build();
@@ -164,7 +165,7 @@ public class RecordController {
     @DeleteMapping("/{record_id}")
     public ResponseEntity<Void> deleteRecord(
             @PathVariable("record_id") Integer recordId,
-            @UserId Integer userId
+            @Parameter(hidden = true) @UserId Integer userId
     ) {
         recordService.deleteRecord(recordId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
@@ -174,7 +175,7 @@ public class RecordController {
     public ResponseEntity<Void> deleteRecord(
             @PathVariable("record_id") Integer recordId,
             @PathVariable("detail_id") Integer detailId,
-            @UserId Integer userId
+            @Parameter(hidden = true) @UserId Integer userId
     ) {
         recordService.deleteRecordDetail(detailId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
@@ -184,7 +185,7 @@ public class RecordController {
     public ResponseEntity<Void> deleteRecordOption(
             @PathVariable("record_id") Integer recordId,
             @PathVariable("option_id") Integer optionId,
-            @UserId Integer userId
+            @Parameter(hidden = true) @UserId Integer userId
     ) {
         recordService.deleteRecordOption(optionId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
