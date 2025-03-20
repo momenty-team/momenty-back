@@ -131,10 +131,12 @@ public class User {
     }
 
     public void updateProfileToRegister(
+            String name,
             String nickname,
             LocalDate birthDate,
             Gender gender
     ) {
+        this.name = name;
         this.nickname = nickname;
         this.birthDate = birthDate;
         this.gender = gender;
