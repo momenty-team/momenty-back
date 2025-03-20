@@ -4,8 +4,8 @@ import com.momenty.notification.domain.NotificationType;
 
 public record FriendNotificationEvent(
         NotificationType notificationType,
-        Integer responseUserId,
-        Integer requestUserId
+        Integer requestUserId,
+        Integer responseUserId
 ) {
 
 }

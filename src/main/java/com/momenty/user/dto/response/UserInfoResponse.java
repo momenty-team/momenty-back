@@ -64,8 +64,8 @@ public record UserInfoResponse(
                 user.getProfileImageUrl(),
                 user.getGender(),
                 user.isPublic(),
-                user.getFollowerCount(),
-                user.getFollowingCount(),
+                user.getFollowers().size(),
+                user.getFollowings().size(),
                 user.getCreatedAt(),
                 user.getUpdatedAt(),
                 user.isDeleted()

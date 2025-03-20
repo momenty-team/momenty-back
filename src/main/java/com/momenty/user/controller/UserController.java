@@ -3,6 +3,7 @@ package com.momenty.user.controller;
 import com.momenty.global.annotation.UserId;
 import com.momenty.global.auth.jwt.domain.JwtStatus;
 import com.momenty.user.domain.User;
+import com.momenty.user.dto.request.FollowingRequest;
 import com.momenty.user.dto.request.NicknameCheckRequest;
 import com.momenty.user.dto.request.UserRegisterRequest;
 import com.momenty.user.dto.request.UserUpdateRequest;
@@ -89,5 +90,14 @@ public class UserController {
     ) {
         userService.checkNickname(nicknameCheckRequest);
         return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PostMapping("/following")
+    public ResponseEntity<Void> followUser (
+            @Valid @RequestBody FollowingRequest followingRequest,
+            @Parameter(hidden = true) @UserId Integer userId
+    ) {
+        userService.follow(followingRequest, userId);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }

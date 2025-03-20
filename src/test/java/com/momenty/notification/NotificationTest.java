@@ -36,7 +36,7 @@ public class NotificationTest {
         Integer requestUserId = 2;
         NotificationType NotificationType = notificationTypeRepository.getById(1);
 
-        FriendNotificationEvent event = new FriendNotificationEvent(NotificationType, userId, requestUserId);
+        FriendNotificationEvent event = new FriendNotificationEvent(NotificationType, requestUserId, userId);
         eventPublisher.publishEvent(event);
     }
 }
