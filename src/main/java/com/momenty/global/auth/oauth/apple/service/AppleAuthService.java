@@ -1,8 +1,6 @@
 package com.momenty.global.auth.oauth.apple.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.momenty.global.auth.jwt.JwtTokenProvider;
 import com.momenty.global.auth.jwt.JwtUtil;
 import com.momenty.global.auth.jwt.domain.AppleJwtStatus;
@@ -48,7 +46,7 @@ public class AppleAuthService {
     private final UserRepository userRepository;
 
     @Transactional
-    public AppleAuthResponse processAppleAuth(String code, String idToken, String userJson)
+    public AppleAuthResponse processAppleAuth(String code, String idToken)
             throws NoSuchAlgorithmException, InvalidKeySpecException, JsonProcessingException {
 
         if (!validateIdToken(idToken)) {
@@ -81,7 +79,6 @@ public class AppleAuthService {
 
             User userInfo = User.builder()
                     .email(email)
-                    .name(extractNameFromUserJson(checkedIdToken))
                     .build();
             userService.register(userInfo);
             JwtStatus jwtStatus = generateJwt(userInfo.getId());
@@ -151,28 +148,6 @@ public class AppleAuthService {
 
         return jwtUtil.getTokenClaims(idToken, publicKey);
     }
-
-    private String extractNameFromUserJson(String userJson) {
-        if (userJson == null || userJson.isEmpty()) {
-            return "";
-        }
-
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode userNode = objectMapper.readTree(userJson);
-            JsonNode nameNode = userNode.get("name");
-
-            if (nameNode != null) {
-                String firstName = nameNode.has("firstName") ? nameNode.get("firstName").asText() : "";
-                String lastName = nameNode.has("lastName") ? nameNode.get("lastName").asText() : "";
-                return firstName + " " + lastName;
-            }
-        } catch (JsonProcessingException e) {
-            log.error("Failed to parse user JSON: {}", e.getMessage());
-        }
-        return "";
-    }
-
 
     public String getEmailFromIdToken(String idToken)
             throws NoSuchAlgorithmException, InvalidKeySpecException, JsonProcessingException {
