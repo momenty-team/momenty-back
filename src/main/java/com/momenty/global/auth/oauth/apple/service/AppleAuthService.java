@@ -1,6 +1,8 @@
 package com.momenty.global.auth.oauth.apple.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.momenty.global.auth.jwt.JwtTokenProvider;
 import com.momenty.global.auth.jwt.JwtUtil;
 import com.momenty.global.auth.jwt.domain.AppleJwtStatus;
@@ -19,14 +21,15 @@ import com.momenty.user.domain.User;
 import com.momenty.user.repository.UserRepository;
 import com.momenty.user.service.UserService;
 import io.jsonwebtoken.Claims;
-import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -45,7 +48,7 @@ public class AppleAuthService {
     private final UserRepository userRepository;
 
     @Transactional
-    public AppleAuthResponse processAppleAuth(String code, String idToken)
+    public AppleAuthResponse processAppleAuth(String code, String idToken, String userJson)
             throws NoSuchAlgorithmException, InvalidKeySpecException, JsonProcessingException {
 
         if (!validateIdToken(idToken)) {
@@ -78,7 +81,7 @@ public class AppleAuthService {
 
             User userInfo = User.builder()
                     .email(email)
-                    .name(getFullName(checkedIdToken))
+                    .name(extractNameFromUserJson(checkedIdToken))
                     .build();
             userService.register(userInfo);
             JwtStatus jwtStatus = generateJwt(userInfo.getId());
@@ -149,18 +152,27 @@ public class AppleAuthService {
         return jwtUtil.getTokenClaims(idToken, publicKey);
     }
 
-    private String getFullName(String idToken)
-            throws NoSuchAlgorithmException, InvalidKeySpecException, JsonProcessingException {
-        Claims claims = decodeIdToken(idToken);
+    private String extractNameFromUserJson(String userJson) {
+        if (userJson == null || userJson.isEmpty()) {
+            return "";
+        }
 
-        String firstName = (String) claims.get("firstName");
-        String lastName = (String) claims.get("lastName");
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode userNode = objectMapper.readTree(userJson);
+            JsonNode nameNode = userNode.get("name");
 
-        firstName = (firstName != null) ? firstName : "";
-        lastName = (lastName != null) ? lastName : "";
-
-        return firstName + " " + lastName;
+            if (nameNode != null) {
+                String firstName = nameNode.has("firstName") ? nameNode.get("firstName").asText() : "";
+                String lastName = nameNode.has("lastName") ? nameNode.get("lastName").asText() : "";
+                return firstName + " " + lastName;
+            }
+        } catch (JsonProcessingException e) {
+            log.error("Failed to parse user JSON: {}", e.getMessage());
+        }
+        return "";
     }
+
 
     public String getEmailFromIdToken(String idToken)
             throws NoSuchAlgorithmException, InvalidKeySpecException, JsonProcessingException {
