@@ -9,6 +9,9 @@ import java.time.LocalDate;
 @JsonNaming(SnakeCaseStrategy.class)
 public record UserRegisterResponse(
 
+        @Schema(description = "사용자 이름", example = "다희", required = true)
+        String name,
+
         @Schema(description = "사용자 닉네임", example = "huihui", required = true)
         String nickname,
 
@@ -20,7 +23,9 @@ public record UserRegisterResponse(
 ) {
     public static UserRegisterResponse of(User user) {
         return new UserRegisterResponse(
-                user.getNickname(), user.getBirthDate(),
+                user.getName(),
+                user.getNickname(),
+                user.getBirthDate(),
                 user.getGender().name());
     }
 }
