@@ -19,4 +19,6 @@ public interface NotificationTypeRepository extends Repository<NotificationType,
                 )
         );
     }
+
+    Optional<NotificationType> findByType(String type);
 }

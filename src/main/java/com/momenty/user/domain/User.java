@@ -67,11 +67,13 @@ public class User {
     @Column(name = "is_public")
     private boolean isPublic = false;
 
-    @Column(name = "follower_count")
-    private Integer followerCount;
+    @JsonIgnore
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Follower> followers = new ArrayList<>();
 
-    @Column(name = "following_count")
-    private Integer followingCount;
+    @JsonIgnore
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Following> followings = new ArrayList<>();
 
     @Column(name = "notification_token")
     private String notificationToken;

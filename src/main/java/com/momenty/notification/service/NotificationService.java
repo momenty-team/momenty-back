@@ -147,7 +147,7 @@ public class NotificationService {
         String type = notification.getNotificationType().getType();
 
         String newContent = switch (type) {
-            case "친구신청", "기록알림" -> userNickname + notification.getContent();
+            case "친구신청", "기록알림", "팔로우" -> userNickname + notification.getContent();
             default -> notification.getContent();
         };
 

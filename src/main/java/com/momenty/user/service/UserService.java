@@ -7,13 +7,23 @@ import com.momenty.global.auth.jwt.domain.JwtStatus;
 import com.momenty.global.auth.jwt.repository.JwtStatusRedisRepository;
 import com.momenty.global.auth.jwt.service.JwtService;
 import com.momenty.global.exception.GlobalException;
+import com.momenty.notification.domain.NotificationType;
+import com.momenty.notification.dto.FriendNotificationEvent;
+import com.momenty.notification.repository.NotificationTypeRepository;
+import com.momenty.user.domain.Follower;
+import com.momenty.user.domain.Following;
 import com.momenty.user.domain.User;
+import com.momenty.user.dto.request.FollowingRequest;
 import com.momenty.user.dto.request.NicknameCheckRequest;
 import com.momenty.user.dto.request.UserRegisterRequest;
 import com.momenty.user.dto.request.UserUpdateRequest;
+import com.momenty.user.repository.FollowerRepository;
+import com.momenty.user.repository.FollowingRepository;
 import com.momenty.user.repository.UserRepository;
-import java.nio.charset.StandardCharsets;
+import jakarta.validation.Valid;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +36,10 @@ public class UserService {
     private final JwtService jwtService;
     private final JwtStatusRedisRepository jwtStatusRedisRepository;
     private final UserRepository userRepository;
+    private final FollowerRepository followerRepository;
+    private final FollowingRepository followingRepository;
+    private final NotificationTypeRepository notificationTypeRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public JwtStatus generalRegister(
@@ -85,5 +99,37 @@ public class UserService {
 
     public void checkNickname(NicknameCheckRequest nicknameCheckRequest) {
         validNicknameDuplication(nicknameCheckRequest.nickname());
+    }
+
+    @Transactional
+    public void follow(@Valid FollowingRequest followingRequest, Integer userId) {
+        User user = userRepository.getById(userId);
+        User followingUser = userRepository.getById(followingRequest.followingUserId());
+
+        if (followingRepository.findByUserAndFollowingUser(user, followingUser).isPresent()) {
+            throw new GlobalException(DUPLICATION_FOLLOWING.getMessage(), DUPLICATION_FOLLOWING.getStatus());
+        }
+
+        Following followingData = Following.builder()
+                .user(user)
+                .followingUser(followingUser)
+                .build();
+        followingRepository.save(followingData);
+
+        Follower followerData = Follower.builder()
+                .user(followingUser)
+                .followerUser(user)
+                .build();
+        followerRepository.save(followerData);
+
+        sendFollowNotification(userId, followingUser.getId());
+    }
+
+    private void sendFollowNotification(Integer userId, Integer followingUserId) {
+        Optional<NotificationType> notificationType = notificationTypeRepository.findByType("팔로우");
+        if (notificationType.isEmpty()) {
+            return;
+        }
+        eventPublisher.publishEvent(new FriendNotificationEvent(notificationType.get(), userId, followingUserId));
     }
 }
