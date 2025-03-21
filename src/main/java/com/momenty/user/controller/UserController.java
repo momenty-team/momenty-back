@@ -14,6 +14,7 @@ import com.momenty.user.dto.response.FollowersResponse;
 import com.momenty.user.dto.response.FollowingsResponse;
 import com.momenty.user.dto.response.UserInfoResponse;
 import com.momenty.user.dto.response.UserRegisterResponse;
+import com.momenty.user.dto.response.UserSearchResponse;
 import com.momenty.user.dto.response.UserUpdateResponse;
 import com.momenty.user.service.UserService;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -133,5 +135,16 @@ public class UserController {
         List<Follower> followers = userService.getFollowers(userId);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(FollowersResponse.of(followers));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<UserSearchResponse> searchUser (
+            @RequestParam(required = false) String nickname,
+            @RequestParam(required = false) String email,
+            @Parameter(hidden = true) @UserId Integer userId
+    ) {
+        List<User> users = userService.searchUser(nickname, email);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(UserSearchResponse.of(users));
     }
 }

@@ -156,4 +156,15 @@ public class UserService {
         User user = userRepository.getById(userId);
         return followerRepository.findAllByUser(user);
     }
+
+    public List<User> searchUser(String nickname, String email) {
+        if (nickname == null && email == null) {
+            throw new GlobalException(NEED_NICKNAME_OR_EMAIL.getMessage(), NEED_NICKNAME_OR_EMAIL.getStatus());
+        }
+
+        if (nickname != null) {
+            return userRepository.findAllByNicknameContaining(nickname);
+        }
+        return userRepository.findAllByEmailContaining(email);
+    }
 }

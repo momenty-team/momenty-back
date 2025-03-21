@@ -11,6 +11,7 @@ public enum UserExceptionMessage {
     BAD_REQUEST("잘못된 요청입니다.", HttpStatus.METHOD_NOT_ALLOWED),
     DUPLICATION_FOLLOWING("이미 팔로우했습니다.", HttpStatus.CONFLICT),
     NOT_FOUND_FOLLOWING_DATA("팔로잉 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    NEED_NICKNAME_OR_EMAIL("닉네임 또는 이메일 중 하나는 필수입니다.", HttpStatus.BAD_REQUEST),
     ;
 
     private final String message;
