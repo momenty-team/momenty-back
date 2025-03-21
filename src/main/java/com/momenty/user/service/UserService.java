@@ -13,6 +13,7 @@ import com.momenty.notification.repository.NotificationTypeRepository;
 import com.momenty.user.domain.Follower;
 import com.momenty.user.domain.Following;
 import com.momenty.user.domain.User;
+import com.momenty.user.dto.request.FollowingCancelRequest;
 import com.momenty.user.dto.request.FollowingRequest;
 import com.momenty.user.dto.request.NicknameCheckRequest;
 import com.momenty.user.dto.request.UserRegisterRequest;
@@ -131,5 +132,14 @@ public class UserService {
             return;
         }
         eventPublisher.publishEvent(new FriendNotificationEvent(notificationType.get(), userId, followingUserId));
+    }
+
+    @Transactional
+    public void cancelFollowing(FollowingCancelRequest followingCancelRequest, Integer userId) {
+        User user = userRepository.getById(userId);
+        User followingCancelUser = userRepository.getById(followingCancelRequest.followingCancelUserId());
+
+        Following followingData = followingRepository.getByUserAndFollowingUser(user, followingCancelUser);
+        followingRepository.deleteById(followingData.getId());
     }
 }

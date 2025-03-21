@@ -10,6 +10,7 @@ public enum UserExceptionMessage {
     NOT_FOUND_USER("유저를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     BAD_REQUEST("잘못된 요청입니다.", HttpStatus.METHOD_NOT_ALLOWED),
     DUPLICATION_FOLLOWING("이미 팔로우했습니다.", HttpStatus.CONFLICT),
+    NOT_FOUND_FOLLOWING_DATA("팔로잉 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     ;
 
     private final String message;
