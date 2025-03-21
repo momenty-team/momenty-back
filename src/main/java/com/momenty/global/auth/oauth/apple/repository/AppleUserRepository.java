@@ -9,4 +9,8 @@ public interface AppleUserRepository extends Repository<AppleUser, Integer> {
     Optional<AppleUser> findBySub(String sub);
 
     void save(AppleUser appleUser);
+
+    void deleteByEmail(String email);
+
+    Optional<AppleUser> findByEmail(String email);
 }
