@@ -94,10 +94,10 @@ public class UserController {
 
     @GetMapping("/nickname/check")
     public ResponseEntity<Void> checkNickname (
-            @RequestBody NicknameCheckRequest nicknameCheckRequest,
+            @RequestParam(required = true) String nickname,
             @Parameter(hidden = true) @UserId Integer userId
     ) {
-        userService.checkNickname(nicknameCheckRequest);
+        userService.checkNickname(nickname);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
