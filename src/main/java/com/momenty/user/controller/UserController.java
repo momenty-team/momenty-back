@@ -2,12 +2,14 @@ package com.momenty.user.controller;
 
 import com.momenty.global.annotation.UserId;
 import com.momenty.global.auth.jwt.domain.JwtStatus;
+import com.momenty.user.domain.Following;
 import com.momenty.user.domain.User;
 import com.momenty.user.dto.request.FollowingCancelRequest;
 import com.momenty.user.dto.request.FollowingRequest;
 import com.momenty.user.dto.request.NicknameCheckRequest;
 import com.momenty.user.dto.request.UserRegisterRequest;
 import com.momenty.user.dto.request.UserUpdateRequest;
+import com.momenty.user.dto.response.FollowingsResponse;
 import com.momenty.user.dto.response.UserInfoResponse;
 import com.momenty.user.dto.response.UserRegisterResponse;
 import com.momenty.user.dto.response.UserUpdateResponse;
@@ -16,6 +18,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -110,5 +113,14 @@ public class UserController {
     ) {
         userService.cancelFollowing(followingCancelRequest, userId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @GetMapping("/followings")
+    public ResponseEntity<FollowingsResponse> getFollowings (
+            @Parameter(hidden = true) @UserId Integer userId
+    ) {
+        List<Following> followings = userService.getFollowings(userId);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(FollowingsResponse.of(followings));
     }
 }
