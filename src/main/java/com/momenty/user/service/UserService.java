@@ -22,6 +22,7 @@ import com.momenty.user.repository.FollowerRepository;
 import com.momenty.user.repository.FollowingRepository;
 import com.momenty.user.repository.UserRepository;
 import jakarta.validation.Valid;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -117,11 +118,14 @@ public class UserService {
                 .build();
         followingRepository.save(followingData);
 
-        Follower followerData = Follower.builder()
-                .user(followingUser)
-                .followerUser(user)
-                .build();
-        followerRepository.save(followerData);
+        Optional<Follower> existedFollowerData = followerRepository.findByUserAndFollowerUser(followingUser, user);
+        if (existedFollowerData.isEmpty()) {
+            Follower followerData = Follower.builder()
+                    .user(followingUser)
+                    .followerUser(user)
+                    .build();
+            followerRepository.save(followerData);
+        }
 
         sendFollowNotification(userId, followingUser.getId());
     }
@@ -141,5 +145,10 @@ public class UserService {
 
         Following followingData = followingRepository.getByUserAndFollowingUser(user, followingCancelUser);
         followingRepository.deleteById(followingData.getId());
+    }
+
+    public List<Following> getFollowings(Integer userId) {
+        User user = userRepository.getById(userId);
+        return followingRepository.findAllByUser(user);
     }
 }
