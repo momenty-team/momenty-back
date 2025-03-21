@@ -33,4 +33,6 @@ public interface UserRepository extends Repository<User, Integer> {
     List<User> findAllByNicknameContaining(String nickname);
 
     List<User> findAllByEmailContaining(String email);
+
+    void deleteById(Integer id);
 }

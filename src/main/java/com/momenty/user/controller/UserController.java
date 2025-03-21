@@ -158,4 +158,12 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(UserStartDayResponse.from(startDay));
     }
+
+    @DeleteMapping("/me")
+    public ResponseEntity<UserStartDayResponse> deleteUser (
+            @Parameter(hidden = true) @UserId Integer userId
+    ) {
+        userService.deleteUser(userId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
 }

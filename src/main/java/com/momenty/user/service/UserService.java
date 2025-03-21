@@ -6,6 +6,8 @@ import com.momenty.global.auth.jwt.JwtTokenProvider;
 import com.momenty.global.auth.jwt.domain.JwtStatus;
 import com.momenty.global.auth.jwt.repository.JwtStatusRedisRepository;
 import com.momenty.global.auth.jwt.service.JwtService;
+import com.momenty.global.auth.oauth.apple.domain.AppleUser;
+import com.momenty.global.auth.oauth.apple.repository.AppleUserRepository;
 import com.momenty.global.exception.GlobalException;
 import com.momenty.notification.domain.NotificationType;
 import com.momenty.notification.dto.FriendNotificationEvent;
@@ -43,6 +45,7 @@ public class UserService {
     private final FollowingRepository followingRepository;
     private final NotificationTypeRepository notificationTypeRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final AppleUserRepository appleUserRepository;
 
     @Transactional
     public JwtStatus generalRegister(
@@ -172,5 +175,16 @@ public class UserService {
     public LocalDateTime getUserStartDay(Integer userId) {
         User user = userRepository.getById(userId);
         return user.getCreatedAt();
+    }
+
+    @Transactional
+    public void deleteUser(Integer userId) {
+        User user = userRepository.getById(userId);
+        String email = user.getEmail();
+
+        userRepository.deleteById(user.getId());
+
+        Optional<AppleUser> appleData = appleUserRepository.findByEmail(email);
+        appleData.ifPresent(appleUser -> appleUserRepository.deleteByEmail(appleUser.getEmail()));
     }
 }
