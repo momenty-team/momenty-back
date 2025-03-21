@@ -99,8 +99,8 @@ public class UserService {
         return userRepository.getById(userId);
     }
 
-    public void checkNickname(NicknameCheckRequest nicknameCheckRequest) {
-        validNicknameDuplication(nicknameCheckRequest.nickname());
+    public void checkNickname(String nickname) {
+        validNicknameDuplication(nickname);
     }
 
     @Transactional
