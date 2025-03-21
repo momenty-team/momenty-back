@@ -2,6 +2,7 @@ package com.momenty.user.controller;
 
 import com.momenty.global.annotation.UserId;
 import com.momenty.global.auth.jwt.domain.JwtStatus;
+import com.momenty.user.domain.Follower;
 import com.momenty.user.domain.Following;
 import com.momenty.user.domain.User;
 import com.momenty.user.dto.request.FollowingCancelRequest;
@@ -9,6 +10,7 @@ import com.momenty.user.dto.request.FollowingRequest;
 import com.momenty.user.dto.request.NicknameCheckRequest;
 import com.momenty.user.dto.request.UserRegisterRequest;
 import com.momenty.user.dto.request.UserUpdateRequest;
+import com.momenty.user.dto.response.FollowersResponse;
 import com.momenty.user.dto.response.FollowingsResponse;
 import com.momenty.user.dto.response.UserInfoResponse;
 import com.momenty.user.dto.response.UserRegisterResponse;
@@ -120,7 +122,16 @@ public class UserController {
             @Parameter(hidden = true) @UserId Integer userId
     ) {
         List<Following> followings = userService.getFollowings(userId);
-        return ResponseEntity.status(HttpStatus.CREATED)
+        return ResponseEntity.status(HttpStatus.OK)
                 .body(FollowingsResponse.of(followings));
+    }
+
+    @GetMapping("/followers")
+    public ResponseEntity<FollowersResponse> getFollowers (
+            @Parameter(hidden = true) @UserId Integer userId
+    ) {
+        List<Follower> followers = userService.getFollowers(userId);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(FollowersResponse.of(followers));
     }
 }
