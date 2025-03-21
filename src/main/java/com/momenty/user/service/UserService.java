@@ -22,6 +22,7 @@ import com.momenty.user.repository.FollowerRepository;
 import com.momenty.user.repository.FollowingRepository;
 import com.momenty.user.repository.UserRepository;
 import jakarta.validation.Valid;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -166,5 +167,10 @@ public class UserService {
             return userRepository.findAllByNicknameContaining(nickname);
         }
         return userRepository.findAllByEmailContaining(email);
+    }
+
+    public LocalDateTime getUserStartDay(Integer userId) {
+        User user = userRepository.getById(userId);
+        return user.getCreatedAt();
     }
 }

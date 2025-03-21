@@ -15,12 +15,14 @@ import com.momenty.user.dto.response.FollowingsResponse;
 import com.momenty.user.dto.response.UserInfoResponse;
 import com.momenty.user.dto.response.UserRegisterResponse;
 import com.momenty.user.dto.response.UserSearchResponse;
+import com.momenty.user.dto.response.UserStartDayResponse;
 import com.momenty.user.dto.response.UserUpdateResponse;
 import com.momenty.user.service.UserService;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -146,5 +148,14 @@ public class UserController {
         List<User> users = userService.searchUser(nickname, email);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(UserSearchResponse.of(users));
+    }
+
+    @GetMapping("/start-days")
+    public ResponseEntity<UserStartDayResponse> getUserStartDay (
+            @Parameter(hidden = true) @UserId Integer userId
+    ) {
+        LocalDateTime startDay = userService.getUserStartDay(userId);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(UserStartDayResponse.from(startDay));
     }
 }
