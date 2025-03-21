@@ -151,4 +151,9 @@ public class UserService {
         User user = userRepository.getById(userId);
         return followingRepository.findAllByUser(user);
     }
+
+    public List<Follower> getFollowers(Integer userId) {
+        User user = userRepository.getById(userId);
+        return followerRepository.findAllByUser(user);
+    }
 }
