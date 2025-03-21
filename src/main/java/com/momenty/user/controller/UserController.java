@@ -3,6 +3,7 @@ package com.momenty.user.controller;
 import com.momenty.global.annotation.UserId;
 import com.momenty.global.auth.jwt.domain.JwtStatus;
 import com.momenty.user.domain.User;
+import com.momenty.user.dto.request.FollowingCancelRequest;
 import com.momenty.user.dto.request.FollowingRequest;
 import com.momenty.user.dto.request.NicknameCheckRequest;
 import com.momenty.user.dto.request.UserRegisterRequest;
@@ -18,6 +19,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -92,12 +94,21 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    @PostMapping("/following")
+    @PostMapping("/followings")
     public ResponseEntity<Void> followUser (
             @Valid @RequestBody FollowingRequest followingRequest,
             @Parameter(hidden = true) @UserId Integer userId
     ) {
         userService.follow(followingRequest, userId);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @DeleteMapping("/followings")
+    public ResponseEntity<Void> cancelFollowing (
+            @Valid @RequestBody FollowingCancelRequest followingCancelRequest,
+            @Parameter(hidden = true) @UserId Integer userId
+    ) {
+        userService.cancelFollowing(followingCancelRequest, userId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
