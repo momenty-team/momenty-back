@@ -61,10 +61,12 @@ public class RecordDetail {
     @Builder
     private RecordDetail(
             String content,
-            UserRecord record
+            UserRecord record,
+            boolean isPublic
     ) {
         this.content = content;
         this.record = record;
+        this.isPublic = isPublic;
     }
 
     public void updateContent(String content) {
