@@ -12,11 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @JsonNaming(SnakeCaseStrategy.class)
 public record UserRegisterRequest(
-
-        @NotBlank(message = "first name은 필수입니다.")
         String firstName,
-
-        @NotBlank(message = "last name은 필수입니다.")
         String lastName,
 
         @NotBlank(message = "닉네임은 필수입니다.")
