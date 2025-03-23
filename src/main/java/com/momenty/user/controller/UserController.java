@@ -7,6 +7,7 @@ import com.momenty.user.domain.Following;
 import com.momenty.user.domain.User;
 import com.momenty.user.dto.request.FollowingCancelRequest;
 import com.momenty.user.dto.request.FollowingRequest;
+import com.momenty.user.dto.request.UserLoginRequest;
 import com.momenty.user.dto.request.UserRegisterRequest;
 import com.momenty.user.dto.request.UserUpdateRequest;
 import com.momenty.user.dto.response.FollowersResponse;
@@ -48,6 +49,10 @@ public class UserController {
             HttpServletResponse response
     ) {
         JwtStatus jwtStatus = userService.generalRegister(userRegisterRequest);
+        return returnCookieResponse(response, jwtStatus);
+    }
+
+    private ResponseEntity<Void> returnCookieResponse(HttpServletResponse response, JwtStatus jwtStatus) {
         Cookie accessTokenCookie = new Cookie("access_token", jwtStatus.getAccessToken());
         accessTokenCookie.setHttpOnly(true);
         accessTokenCookie.setPath("/");
@@ -61,6 +66,15 @@ public class UserController {
         response.addCookie(accessTokenCookie);
         response.addCookie(refreshTokenCookie);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<Void> GeneralLogin (
+            @Valid @RequestBody UserLoginRequest userLoginRequest,
+            HttpServletResponse response
+    ) {
+        JwtStatus jwtStatus = userService.generalLogin(userLoginRequest);
+        return returnCookieResponse(response, jwtStatus);
     }
 
 

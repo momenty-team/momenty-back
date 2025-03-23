@@ -73,4 +73,12 @@ public class JwtService {
 
         return jwtStatusRedisRepository.save(updatedStatus);
     }
+
+    public JwtStatus generateAndStoreJwt(Integer userId) {
+        String accessToken = jwtTokenProvider.generateAccessToken(String.valueOf(userId));
+        String refreshToken = jwtTokenProvider.generateRefreshToken(String.valueOf(userId));
+
+        JwtStatus jwtStatus = createJwtStatus(userId, accessToken, refreshToken);
+        return jwtStatusRedisRepository.save(jwtStatus);
+    }
 }

@@ -1,5 +1,6 @@
 package com.momenty.user.service;
 
+import static com.momenty.global.auth.jwt.exception.TokenExceptionMessage.INVALID_TOKEN;
 import static com.momenty.user.exception.UserExceptionMessage.*;
 
 import com.momenty.global.auth.jwt.JwtTokenProvider;
@@ -17,7 +18,7 @@ import com.momenty.user.domain.Following;
 import com.momenty.user.domain.User;
 import com.momenty.user.dto.request.FollowingCancelRequest;
 import com.momenty.user.dto.request.FollowingRequest;
-import com.momenty.user.dto.request.NicknameCheckRequest;
+import com.momenty.user.dto.request.UserLoginRequest;
 import com.momenty.user.dto.request.UserRegisterRequest;
 import com.momenty.user.dto.request.UserUpdateRequest;
 import com.momenty.user.repository.FollowerRepository;
@@ -186,5 +187,26 @@ public class UserService {
 
         Optional<AppleUser> appleData = appleUserRepository.findByEmail(email);
         appleData.ifPresent(appleUser -> appleUserRepository.deleteByEmail(appleUser.getEmail()));
+    }
+
+    @Transactional
+    public JwtStatus generalLogin(UserLoginRequest userLoginRequest) {
+        String accessToken = userLoginRequest.accessToken();
+        User user = userRepository.getByNickname(userLoginRequest.nickname());
+
+        if (accessToken == null) {
+            throw new GlobalException(INVALID_TOKEN.getMessage(), INVALID_TOKEN.getStatus());
+        }
+
+        String tokenUserId = jwtTokenProvider.getUserIdEvenIfExpired(accessToken);
+        if (!user.getId().equals(Integer.parseInt(tokenUserId))) {
+            throw new GlobalException(INVALID_TOKEN.getMessage(), INVALID_TOKEN.getStatus());
+        }
+
+        if (jwtTokenProvider.isTokenExpired(accessToken)) {
+            return jwtService.generateAndStoreJwt(user.getId());
+        }
+
+        return jwtStatusRedisRepository.getById(user.getId());
     }
 }

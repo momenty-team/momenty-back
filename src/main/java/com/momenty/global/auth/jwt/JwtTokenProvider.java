@@ -2,13 +2,13 @@ package com.momenty.global.auth.jwt;
 
 import com.momenty.global.auth.jwt.domain.JwtStatus;
 import com.momenty.global.auth.jwt.repository.JwtStatusRedisRepository;
+import com.momenty.global.auth.jwt.service.JwtService;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
-import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -93,5 +93,28 @@ public class JwtTokenProvider {
             log.error("❌ JWT 검증 실패: {}", e.getMessage());
         }
         return false;
+    }
+
+    public boolean isTokenExpired(String token) {
+        try {
+            Jwts.parserBuilder()
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(token);
+            return false; // 만료되지 않음
+        } catch (ExpiredJwtException e) {
+            return true; // 만료됨
+        } catch (Exception e) {
+            log.error("토큰 파싱 실패: {}", e.getMessage());
+            return false; // 만료 여부가 아님 (기타 오류)
+        }
+    }
+
+    public String getUserIdEvenIfExpired(String token) {
+        try {
+            return getUserIdFromToken(token);
+        } catch (ExpiredJwtException e) {
+            return e.getClaims().getSubject();
+        }
     }
 }
