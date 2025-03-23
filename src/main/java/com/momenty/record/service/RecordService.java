@@ -288,7 +288,12 @@ public class RecordService {
             Integer detailId
     ) {
         RecordDetail recordDetail = recordDetailRepository.getById(detailId);
-        recordDetail.update(recordDetailUpdateRequest.content(), recordDetailUpdateRequest.isPublic());
+        recordDetail.update(
+                recordDetailUpdateRequest.content(),
+                recordDetailUpdateRequest.isPublic(),
+                recordDetailUpdateRequest.hour(),
+                recordDetailUpdateRequest.minute()
+        );
     }
 
     @Transactional
