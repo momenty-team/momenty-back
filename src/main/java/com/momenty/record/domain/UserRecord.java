@@ -44,6 +44,9 @@ public class UserRecord {
     @Enumerated(EnumType.STRING)
     private RecordMethod method;
 
+    @Column(name = "is_public")
+    private boolean isPublic = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
@@ -61,10 +64,12 @@ public class UserRecord {
     private UserRecord(
             String title,
             RecordMethod method,
+            Boolean isPublic,
             User user
     ) {
         this.title = title;
         this.method = method;
+        this.isPublic = isPublic;
         this.user = user;
     }
 

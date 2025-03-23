@@ -51,6 +51,7 @@ public class RecordService {
         UserRecord userRecord = UserRecord.builder()
                 .title(recordAddRequest.title())
                 .method(RecordMethod.valueOf(recordAddRequest.method().toUpperCase()))
+                .isPublic(recordAddRequest.isPublic())
                 .user(user)
                 .build();
 
