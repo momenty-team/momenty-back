@@ -47,7 +47,7 @@ public class RecordDetail {
     private UserRecord record;
 
     @CreatedDate
-    @Column(name = "created_at", columnDefinition = "TIMESTAMP", nullable = false, updatable = false)
+    @Column(name = "created_at", columnDefinition = "TIMESTAMP", nullable = false)
     private LocalDateTime createdAt;
 
     @LastModifiedDate
@@ -69,12 +69,19 @@ public class RecordDetail {
         this.isPublic = isPublic;
     }
 
-    public void update(String content, Boolean isPublic) {
+    public void update(String content, Boolean isPublic, Integer hour, Integer minute) {
         if (content != null) {
             this.content = content;
         }
         if (isPublic != null) {
             this.isPublic = isPublic;
         }
+
+        if (hour != null || minute != null) {
+            int newHour = (hour != null) ? hour : this.createdAt.getHour();
+            int newMinute = (minute != null) ? minute : this.createdAt.getMinute();
+            this.createdAt = this.createdAt.withHour(newHour).withMinute(newMinute);
+        }
+
     }
 }
