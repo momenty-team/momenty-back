@@ -115,6 +115,7 @@ public class RecordService {
         RecordDetail recordDetail = RecordDetail.builder()
                 .content(recordDetailAddRequest.content())
                 .record(record)
+                .isPublic(recordDetailAddRequest.isPublic())
                 .build();
         recordDetailRepository.save(recordDetail);
 
