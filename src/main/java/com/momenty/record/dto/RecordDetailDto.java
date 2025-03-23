@@ -7,7 +7,7 @@ import java.util.List;
 public record RecordDetailDto(
         Integer id,
         List<String> content,
-        boolean isPublic,
+        Boolean isPublic,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
@@ -16,7 +16,7 @@ public record RecordDetailDto(
         return new RecordDetailDto(
                 recordDetails.getId(),
                 content,
-                recordDetails.isPublic(),
+                recordDetails.getIsPublic(),
                 recordDetails.getCreatedAt(),
                 recordDetails.getUpdatedAt()
         );

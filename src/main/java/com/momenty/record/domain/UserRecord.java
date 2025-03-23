@@ -77,7 +77,12 @@ public class UserRecord {
         this.recordUnit.updateUnit(unit);
     }
 
-    public void updateTitle(String title) {
-        this.title = title;
+    public void update(String title, Boolean isPublic) {
+        if (title != null) {
+            this.title = title;
+        }
+        if (isPublic != null) {
+            this.isPublic = isPublic;
+        }
     }
 }

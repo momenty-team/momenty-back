@@ -279,7 +279,7 @@ public class RecordService {
     @Transactional
     public void updateRecord(RecordUpdateRequest recordUpdateRequest, Integer recordId) {
         UserRecord record = recordRepository.getById(recordId);
-        record.updateTitle(recordUpdateRequest.title());
+        record.update(recordUpdateRequest.title(), recordUpdateRequest.isPublic());
     }
 
     @Transactional
@@ -288,7 +288,7 @@ public class RecordService {
             Integer detailId
     ) {
         RecordDetail recordDetail = recordDetailRepository.getById(detailId);
-        recordDetail.updateContent(recordDetailUpdateRequest.content());
+        recordDetail.update(recordDetailUpdateRequest.content(), recordDetailUpdateRequest.isPublic());
     }
 
     @Transactional
