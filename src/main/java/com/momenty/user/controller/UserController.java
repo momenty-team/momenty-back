@@ -7,7 +7,6 @@ import com.momenty.user.domain.Following;
 import com.momenty.user.domain.User;
 import com.momenty.user.dto.request.FollowingCancelRequest;
 import com.momenty.user.dto.request.FollowingRequest;
-import com.momenty.user.dto.request.NicknameCheckRequest;
 import com.momenty.user.dto.request.UserRegisterRequest;
 import com.momenty.user.dto.request.UserUpdateRequest;
 import com.momenty.user.dto.response.FollowersResponse;

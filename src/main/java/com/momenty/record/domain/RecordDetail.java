@@ -14,7 +14,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +37,10 @@ public class RecordDetail {
 
     @Column(name = "content")
     private String content;
+
+    @Column(name = "is_public")
+    private boolean isPublic = false;
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "record_id")
