@@ -11,6 +11,7 @@ public record RecordsResponse(
         @Schema(description = "기록 목록", required = true)
         List<Records> records
 ) {
+    @JsonNaming(SnakeCaseStrategy.class)
     public record Records(
             @Schema(description = "기록 ID", example = "1", required = true)
             Integer id,
@@ -19,7 +20,10 @@ public record RecordsResponse(
             String title,
 
             @Schema(description = "기록 방식", example = "option_type", required = true)
-            String method
+            String method,
+
+            @Schema(description = "기록 공개 여부", example = "true", required = true)
+            boolean isPublic
     ) {}
 
     public static RecordsResponse of (List<UserRecord> userRecords) {
@@ -27,7 +31,8 @@ public record RecordsResponse(
                 .map(userRecord -> new Records(
                         userRecord.getId(),
                         userRecord.getTitle(),
-                        userRecord.getMethod().name().toLowerCase()
+                        userRecord.getMethod().name().toLowerCase(),
+                        userRecord.isPublic()
                 )).toList();
         return new RecordsResponse(recordsList);
     }
