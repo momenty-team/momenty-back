@@ -12,12 +12,16 @@ public record RecordDetailsResponse(
         @Schema(description = "기록 디테일 목록", required = true)
         List<RecordDetails> records
 ) {
+    @JsonNaming(SnakeCaseStrategy.class)
     public record RecordDetails (
             @Schema(description = "기록 디테일 ID", example = "1", required = true)
             Integer id,
 
             @Schema(description = "기록 디테일 내용", example = "오늘은 슬픈날이었다.", required = true)
             List<String> content,
+
+            @Schema(description = "기록 디테일 공개 여부", example = "true", required = true)
+            boolean isPublic,
 
             @Schema(description = "기록 디테일 생성 날짜", example = "2024-03-20 12:00:00", required = true)
             @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
@@ -33,6 +37,7 @@ public record RecordDetailsResponse(
                 .map(recordDetail -> new RecordDetails(
                         recordDetail.id(),
                         recordDetail.content(),
+                        recordDetail.isPublic(),
                         recordDetail.createdAt(),
                         recordDetail.updatedAt()
                 )).toList();
