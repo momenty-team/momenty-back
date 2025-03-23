@@ -39,7 +39,7 @@ public class RecordDetail {
     private String content;
 
     @Column(name = "is_public")
-    private boolean isPublic = false;
+    private Boolean isPublic = false;
 
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -69,7 +69,12 @@ public class RecordDetail {
         this.isPublic = isPublic;
     }
 
-    public void updateContent(String content) {
-        this.content = content;
+    public void update(String content, Boolean isPublic) {
+        if (content != null) {
+            this.content = content;
+        }
+        if (isPublic != null) {
+            this.isPublic = isPublic;
+        }
     }
 }
