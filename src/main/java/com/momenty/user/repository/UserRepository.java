@@ -30,6 +30,12 @@ public interface UserRepository extends Repository<User, Integer> {
         );
     }
 
+    default User getByNickname(String nickname) {
+        return findByNickname(nickname).orElseThrow(
+                () -> new GlobalException(NOT_FOUND_USER.getMessage(), NOT_FOUND_USER.getStatus())
+        );
+    }
+
     List<User> findAllByNicknameContaining(String nickname);
 
     List<User> findAllByEmailContaining(String email);
