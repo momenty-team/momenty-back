@@ -11,6 +11,7 @@ import java.security.spec.InvalidKeySpecException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,24 +42,26 @@ public class AppleAuthController {
 
         AppleAuthResponse authResponse = appleAuthService.processAppleAuth(code, idToken);
 
-        Cookie accessTokenCookie = new Cookie("access_token", authResponse.accessToken());
-        accessTokenCookie.setHttpOnly(true);
-        accessTokenCookie.setSecure(true);
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(60 * 60); // 1시간
-        accessTokenCookie.setAttribute("SameSite", "None");
+        ResponseCookie accessTokenCookie = ResponseCookie.from("access_token", authResponse.accessToken())
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .path("/")
+                .maxAge(60 * 60 * 24 * 14)
+                .build();
 
         log.info("반환한 aceess token: access_token={}", authResponse.accessToken());
 
-        Cookie refreshTokenCookie = new Cookie("refresh_token", authResponse.refreshToken());
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(true);
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(60 * 60 * 24 * 14); // 14일
-        refreshTokenCookie.setAttribute("SameSite", "None");
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refresh_token", authResponse.accessToken())
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .path("/")
+                .maxAge(60 * 60 * 24 * 14)
+                .build();
 
-        response.addCookie(accessTokenCookie);
-        response.addCookie(refreshTokenCookie);
+        response.addHeader("Set-Cookie", accessTokenCookie.toString());
+        response.addHeader("Set-Cookie", refreshTokenCookie.toString());
 
         return ResponseEntity.ok(AppleLoginResponse.of(authResponse.user()));
     }

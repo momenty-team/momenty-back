@@ -26,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,18 +54,25 @@ public class UserController {
     }
 
     private ResponseEntity<Void> returnCookieResponse(HttpServletResponse response, JwtStatus jwtStatus) {
-        Cookie accessTokenCookie = new Cookie("access_token", jwtStatus.getAccessToken());
-        accessTokenCookie.setHttpOnly(true);
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(60 * 60 * 24 * 14); // 1시간 -> 14일
+        ResponseCookie accessTokenCookie = ResponseCookie.from("access_token", jwtStatus.getAccessToken())
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .path("/")
+                .maxAge(60 * 60 * 24 * 14)
+                .build();
 
-        Cookie refreshTokenCookie = new Cookie("refresh_token", jwtStatus.getRefreshToken());
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(60 * 60 * 24 * 14); // 14일
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refresh_token", jwtStatus.getRefreshToken())
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .path("/")
+                .maxAge(60 * 60 * 24 * 14)
+                .build();
 
-        response.addCookie(accessTokenCookie);
-        response.addCookie(refreshTokenCookie);
+        response.addHeader("Set-Cookie", accessTokenCookie.toString());
+        response.addHeader("Set-Cookie", refreshTokenCookie.toString());
+
         return ResponseEntity.ok().build();
     }
 
