@@ -30,6 +30,9 @@ dependencyManagement {
 }
 
 dependencies {
+	// WebClient 사용을 위한 Spring WebFlux
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
 	implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.1.0'
 
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
