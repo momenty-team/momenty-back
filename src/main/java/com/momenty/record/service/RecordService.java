@@ -1,8 +1,13 @@
 package com.momenty.record.service;
 
+import static com.momenty.record.domain.RecordAnalysisMessage.CONTENT_AND_PROMPT;
+import static com.momenty.record.domain.RecordAnalysisMessage.DATE_AND_CONTENT_SEPARATOR;
+import static com.momenty.record.domain.RecordAnalysisMessage.DATE_PATTERN;
+import static com.momenty.record.domain.RecordAnalysisMessage.PROMPT;
 import static com.momenty.record.exception.RecordExceptionMessage.*;
 
 import com.momenty.global.exception.GlobalException;
+import com.momenty.record.domain.RecordAnalysisMessageMessage;
 import com.momenty.record.domain.RecordDetail;
 import com.momenty.record.domain.RecordDetailOption;
 import com.momenty.record.domain.RecordMethod;
@@ -10,6 +15,7 @@ import com.momenty.record.domain.RecordOption;
 import com.momenty.record.domain.RecordUnit;
 import com.momenty.record.domain.UserRecord;
 import com.momenty.record.dto.RecordAddRequest;
+import com.momenty.record.dto.RecordAnalysisResponse;
 import com.momenty.record.dto.RecordDetailAddRequest;
 import com.momenty.record.dto.RecordDetailDto;
 import com.momenty.record.dto.RecordDetailUpdateRequest;
@@ -22,15 +28,21 @@ import com.momenty.record.repository.RecordDetailRepository;
 import com.momenty.record.repository.RecordOptionRepository;
 import com.momenty.record.repository.RecordRepository;
 import com.momenty.record.repository.RecordUnitRepository;
+import com.momenty.record.util.AiClient;
 import com.momenty.user.domain.User;
 import com.momenty.user.repository.UserRepository;
 import com.nimbusds.jose.util.Pair;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
@@ -43,6 +55,7 @@ public class RecordService {
     private final RecordUnitRepository recordUnitRepository;
     private final RecordDetailOptionRepository recordDetailOptionRepository;
     private final RecordDetailRepository recordDetailRepository;
+    private final AiClient aiClient;
 
     @Transactional
     public void addRecord(RecordAddRequest recordAddRequest, Integer userId) {
@@ -317,5 +330,46 @@ public class RecordService {
             throw new GlobalException(USED_OPTION_NOT_DELETE.getMessage(), USED_OPTION_NOT_DELETE.getStatus());
         }
         recordOptionRepository.deleteById(optionId);
+    }
+
+    public Mono<RecordAnalysisResponse> analyzeRecord(Integer recordId) {
+        UserRecord record = recordRepository.getById(recordId);
+        List<RecordDetail> recordDetails = recordDetailRepository.findAllByRecord(record);
+
+        boolean isOptionType = isOptionType(record.getMethod());
+        boolean isNumberType = isNumberType(record.getMethod());
+
+        RecordUnit recordUnit = (isOptionType || isNumberType)
+                ? recordUnitRepository.getByRecord(record)
+                : null;
+
+        List<RecordDetailDto> recordDetailDtos =  recordDetails.stream()
+                .map(recordDetail -> getRecordDetailDto(recordDetail, isOptionType, isNumberType, recordUnit))
+                .toList();
+
+        String prompt = buildPrompt(recordDetailDtos, record.getTitle());
+        return aiClient.requestSummary(prompt);
+    }
+
+    private String buildPrompt(List<RecordDetailDto> recordDetails, String recordTitle) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_PATTERN.getMessage());
+
+        String promptChoices = Arrays.stream(RecordAnalysisMessageMessage.values())
+                .map(RecordAnalysisMessageMessage::getMessage)
+                .collect(Collectors.joining("\n"));
+
+        String recordContent = recordDetails.stream()
+                .sorted(Comparator.comparing(RecordDetailDto::createdAt).reversed())
+                .limit(20)
+                .map(detail -> detail.createdAt().format(formatter)
+                        + DATE_AND_CONTENT_SEPARATOR.getMessage()
+                        + String.join(", ", detail.content().toString())
+                )
+                .collect(Collectors.joining(CONTENT_AND_PROMPT.getMessage()));
+
+        return PROMPT.getMessage()
+                + "\n\n" + promptChoices
+                + "\n\n" + recordTitle + ":\n"
+                + recordContent;
     }
 }

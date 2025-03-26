@@ -4,6 +4,7 @@ import com.momenty.global.annotation.UserId;
 import com.momenty.record.domain.RecordOption;
 import com.momenty.record.domain.UserRecord;
 import com.momenty.record.dto.RecordAddRequest;
+import com.momenty.record.dto.RecordAnalysisResponse;
 import com.momenty.record.dto.RecordDetailAddRequest;
 import com.momenty.record.dto.RecordDetailDto;
 import com.momenty.record.dto.RecordDetailResponse;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Mono;
 
 @RestController
 @RequiredArgsConstructor
@@ -189,5 +191,14 @@ public class RecordController {
     ) {
         recordService.deleteRecordOption(optionId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @GetMapping("/{record_id}/analysis")
+    public Mono<ResponseEntity<RecordAnalysisResponse>> analyzeRecord(
+            @PathVariable("record_id") Integer recordId,
+            @Parameter(hidden = true) @UserId Integer userId
+    ) {
+        return recordService.analyzeRecord(recordId)
+                .map(ResponseEntity::ok);
     }
 }
