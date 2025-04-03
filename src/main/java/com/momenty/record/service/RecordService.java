@@ -4,10 +4,12 @@ import static com.momenty.record.domain.RecordAnalysisMessage.CONTENT_AND_PROMPT
 import static com.momenty.record.domain.RecordAnalysisMessage.DATE_AND_CONTENT_SEPARATOR;
 import static com.momenty.record.domain.RecordAnalysisMessage.DATE_PATTERN;
 import static com.momenty.record.domain.RecordAnalysisMessage.PROMPT;
+import static com.momenty.record.domain.RecordAnalysisMessage.RECORD_CONTENT;
 import static com.momenty.record.exception.RecordExceptionMessage.*;
 
 import com.momenty.global.exception.GlobalException;
-import com.momenty.record.domain.RecordAnalysisMessageMessage;
+import com.momenty.record.domain.AnalysisPeriod;
+import com.momenty.record.domain.RecordAnalysisStatusMessage;
 import com.momenty.record.domain.RecordDetail;
 import com.momenty.record.domain.RecordDetailOption;
 import com.momenty.record.domain.RecordMethod;
@@ -38,6 +40,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -167,16 +170,7 @@ public class RecordService {
             recordDetails = recordDetailRepository.findAllByRecord(userRecord);
         }
 
-        boolean isOptionType = isOptionType(userRecord.getMethod());
-        boolean isNumberType = isNumberType(userRecord.getMethod());
-
-        RecordUnit recordUnit = (isOptionType || isNumberType)
-                ? recordUnitRepository.getByRecord(userRecord)
-                : null;
-
-        return recordDetails.stream()
-                .map(recordDetail -> getRecordDetailDto(recordDetail, isOptionType, isNumberType, recordUnit))
-                .toList();
+        return getRecordDetailDtos(userRecord, recordDetails);
     }
 
     private Pair<LocalDateTime, LocalDateTime> makeDateFilter(Integer year, Integer month, Integer day) {
@@ -354,8 +348,8 @@ public class RecordService {
     private String buildPrompt(List<RecordDetailDto> recordDetails, String recordTitle) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_PATTERN.getMessage());
 
-        String promptChoices = Arrays.stream(RecordAnalysisMessageMessage.values())
-                .map(RecordAnalysisMessageMessage::getMessage)
+        String promptChoices = Arrays.stream(RecordAnalysisStatusMessage.values())
+                .map(RecordAnalysisStatusMessage::getMessage)
                 .collect(Collectors.joining("\n"));
 
         String recordContent = recordDetails.stream()
@@ -371,5 +365,95 @@ public class RecordService {
                 + "\n\n" + promptChoices
                 + "\n\n" + recordTitle + ":\n"
                 + recordContent;
+    }
+
+    private String buildPrompt(Map<String, List<RecordDetailDto>> titleToDtosMap) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_PATTERN.getMessage());
+
+        String promptChoices = Arrays.stream(RecordAnalysisStatusMessage.values())
+                .map(RecordAnalysisStatusMessage::getMessage)
+                .collect(Collectors.joining("\n"));
+
+        StringBuilder fullContent = new StringBuilder();
+
+        for (Map.Entry<String, List<RecordDetailDto>> entry : titleToDtosMap.entrySet()) {
+            String title = entry.getKey(); // 기록 제목
+            List<RecordDetailDto> dtos = entry.getValue();
+
+            String recordContent = dtos.stream()
+                    .sorted(Comparator.comparing(RecordDetailDto::createdAt).reversed())
+                    .limit(10)
+                    .map(detail -> detail.createdAt().format(formatter)
+                            + DATE_AND_CONTENT_SEPARATOR.getMessage()
+                            + String.join(", ", detail.content()))
+                    .collect(Collectors.joining(CONTENT_AND_PROMPT.getMessage()));
+
+            // 기록 제목 포함
+            fullContent.append("[").append(title).append("]").append("\n")
+                    .append(recordContent)
+                    .append("\n\n");
+        }
+
+        return PROMPT.getMessage()
+                + "\n\n" + promptChoices
+                + "\n\n" + RECORD_CONTENT.getMessage() + "\n"
+                + fullContent;
+    }
+
+
+    public Mono<RecordAnalysisResponse> analyzeRecords(String period, Integer userId) {
+        validPeriod(period);
+        User user = userRepository.getById(userId);;
+        Pair<LocalDateTime, LocalDateTime> range = getPeriodRange(period);
+
+        Map<UserRecord, List<RecordDetail>> recordDetailsMap = user.getRecords().stream()
+                .collect(Collectors.toMap(
+                        record -> record,
+                        record -> recordDetailRepository.findByRecordAndCreatedAtBetween(record, range.getLeft(), range.getRight())
+                ));
+
+        Map<String, List<RecordDetailDto>> titleToDtosMap = recordDetailsMap.entrySet().stream()
+                .collect(Collectors.toMap(
+                        entry -> entry.getKey().getTitle(),
+                        entry -> {
+                            UserRecord record = entry.getKey();
+                            List<RecordDetail> details = entry.getValue();
+
+                            return getRecordDetailDtos(record, details);
+                        }
+                ));
+
+        String prompt = buildPrompt(titleToDtosMap);
+        System.out.println(prompt);
+        return aiClient.requestSummary(prompt);
+    }
+
+    private List<RecordDetailDto> getRecordDetailDtos(UserRecord record, List<RecordDetail> details) {
+        boolean isOptionType = isOptionType(record.getMethod());
+        boolean isNumberType = isNumberType(record.getMethod());
+        RecordUnit recordUnit = (isOptionType || isNumberType)
+                ? recordUnitRepository.getByRecord(record)
+                : null;
+
+        return details.stream()
+                .map(detail -> getRecordDetailDto(detail, isOptionType, isNumberType, recordUnit))
+                .toList();
+    }
+
+    private void validPeriod(String period) {
+        try {
+            AnalysisPeriod.valueOf(period.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new GlobalException(BAD_PERIOD.getMessage(), BAD_PERIOD.getStatus());
+        }
+    }
+
+    private Pair<LocalDateTime, LocalDateTime> getPeriodRange(String period) {
+        LocalDateTime now = LocalDateTime.now();
+        return switch (AnalysisPeriod.valueOf(period.toUpperCase())) {
+            case TODAY -> Pair.of(now.toLocalDate().atStartOfDay(), now.toLocalDate().atTime(23, 59, 59));
+            case WEEK -> Pair.of(now.minusDays(6).toLocalDate().atStartOfDay(), now.toLocalDate().atTime(23, 59, 59));
+            case MONTH -> Pair.of(now.withDayOfMonth(1).toLocalDate().atStartOfDay(), now.toLocalDate().atTime(23, 59, 59));
+        };
     }
 }

@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum RecordAnalysisMessageMessage {
+public enum RecordAnalysisStatusMessage {
     ACTIVE_HAPPY("1. 활기차고 기분이 좋습니다."),
     CALM_STABLE("2. 평온하고 안정된 상태입니다."),
     PASSIONATE("3. 열정적이고 의욕이 넘칩니다."),
