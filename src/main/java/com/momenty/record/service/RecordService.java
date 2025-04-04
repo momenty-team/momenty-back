@@ -165,9 +165,9 @@ public class RecordService {
         UserRecord userRecord = recordRepository.getById(recordId);
         List<RecordDetail> recordDetails;
         if (startDate != null && endDate != null) {
-            recordDetails = recordDetailRepository.findByRecordAndCreatedAtBetween(userRecord, startDate, endDate);
+            recordDetails = recordDetailRepository.findByRecordAndCreatedAtBetweenOrderByCreatedAtDesc(userRecord, startDate, endDate);
         } else {
-            recordDetails = recordDetailRepository.findAllByRecord(userRecord);
+            recordDetails = recordDetailRepository.findAllByRecordOrderByCreatedAtDesc(userRecord);
         }
 
         return getRecordDetailDtos(userRecord, recordDetails);
@@ -328,7 +328,7 @@ public class RecordService {
 
     public Mono<RecordAnalysisResponse> analyzeRecord(Integer recordId) {
         UserRecord record = recordRepository.getById(recordId);
-        List<RecordDetail> recordDetails = recordDetailRepository.findAllByRecord(record);
+        List<RecordDetail> recordDetails = recordDetailRepository.findAllByRecordOrderByCreatedAtDesc(record);
 
         boolean isOptionType = isOptionType(record.getMethod());
         boolean isNumberType = isNumberType(record.getMethod());
@@ -409,7 +409,7 @@ public class RecordService {
         Map<UserRecord, List<RecordDetail>> recordDetailsMap = user.getRecords().stream()
                 .collect(Collectors.toMap(
                         record -> record,
-                        record -> recordDetailRepository.findByRecordAndCreatedAtBetween(record, range.getLeft(), range.getRight())
+                        record -> recordDetailRepository.findByRecordAndCreatedAtBetweenOrderByCreatedAtDesc(record, range.getLeft(), range.getRight())
                 ));
 
         Map<String, List<RecordDetailDto>> titleToDtosMap = recordDetailsMap.entrySet().stream()

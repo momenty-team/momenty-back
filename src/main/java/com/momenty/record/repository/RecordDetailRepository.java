@@ -14,9 +14,9 @@ public interface RecordDetailRepository extends Repository<RecordDetail, Integer
 
     void save(RecordDetail recordDetail);
 
-    List<RecordDetail> findAllByRecord(UserRecord record);
+    List<RecordDetail> findAllByRecordOrderByCreatedAtDesc(UserRecord record);
 
-    List<RecordDetail> findByRecordAndCreatedAtBetween(
+    List<RecordDetail> findByRecordAndCreatedAtBetweenOrderByCreatedAtDesc(
             UserRecord userRecord,
             LocalDateTime startDate, LocalDateTime endDate
     );
