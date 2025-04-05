@@ -456,4 +456,8 @@ public class RecordService {
             case MONTH -> Pair.of(now.withDayOfMonth(1).toLocalDate().atStartOfDay(), now.toLocalDate().atTime(23, 59, 59));
         };
     }
+
+    public UserRecord getRecord(Integer recordId) {
+        return recordRepository.getById(recordId);
+    }
 }

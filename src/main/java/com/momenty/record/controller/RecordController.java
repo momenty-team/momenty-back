@@ -77,8 +77,9 @@
                 @Parameter(hidden = true) @UserId Integer userId
         ) {
             List<RecordDetailDto> recordDetails = recordService.getRecordDetails(recordId, year, month, day);
+            UserRecord record = recordService.getRecord(recordId);
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(RecordDetailsResponse.of(recordDetails));
+                    .body(RecordDetailsResponse.from(record, recordDetails));
         }
 
         @GetMapping("/{record_id}/details/{detail_id}")

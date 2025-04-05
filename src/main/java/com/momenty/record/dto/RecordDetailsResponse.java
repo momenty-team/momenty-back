@@ -45,11 +45,7 @@ public record RecordDetailsResponse(
             LocalDateTime updatedAt
     ) {}
 
-    public static RecordDetailsResponse of (List<RecordDetailDto> recordDetailDtos) {
-        UserRecord record = null;
-        if (!recordDetailDtos.isEmpty()) {
-            record = recordDetailDtos.get(0).record();
-        }
+    public static RecordDetailsResponse from(UserRecord record, List<RecordDetailDto> recordDetailDtos) {
         List<RecordDetails> recordDetails = recordDetailDtos.stream()
                 .map(recordDetail -> new RecordDetails(
                         recordDetail.id(),
@@ -59,11 +55,8 @@ public record RecordDetailsResponse(
                         recordDetail.updatedAt()
                 )).toList();
 
-        if (record != null) {
-            return new RecordDetailsResponse(
-                    record.getId(), record.getTitle(), record.getMethod().name(), record.isPublic(), recordDetails
-            );
-        }
-        return new RecordDetailsResponse(null, null, null, null, recordDetails);
+        return new RecordDetailsResponse(
+                record.getId(), record.getTitle(), record.getMethod().name(), record.isPublic(), recordDetails
+        );
     }
 }
