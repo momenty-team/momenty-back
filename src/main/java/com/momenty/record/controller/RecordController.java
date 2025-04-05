@@ -2,6 +2,7 @@
 
     import com.momenty.global.annotation.UserId;
     import com.momenty.record.domain.RecordOption;
+    import com.momenty.record.domain.RecordUnit;
     import com.momenty.record.domain.UserRecord;
     import com.momenty.record.dto.RecordAddRequest;
     import com.momenty.record.dto.RecordAnalysisResponse;
@@ -14,6 +15,7 @@
     import com.momenty.record.dto.RecordOptionUpdateRequest;
     import com.momenty.record.dto.RecordOptionsResponse;
     import com.momenty.record.dto.RecordUnitAddRequest;
+    import com.momenty.record.dto.RecordUnitResponse;
     import com.momenty.record.dto.RecordUpdateRequest;
     import com.momenty.record.dto.RecordsResponse;
     import com.momenty.record.service.RecordService;
@@ -79,7 +81,7 @@
             List<RecordDetailDto> recordDetails = recordService.getRecordDetails(recordId, year, month, day);
             UserRecord record = recordService.getRecord(recordId);
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(RecordDetailsResponse.from(record, recordDetails));
+                    .body(RecordDetailsResponse.of(record, recordDetails));
         }
 
         @GetMapping("/{record_id}/details/{detail_id}")
@@ -101,6 +103,16 @@
             List<RecordOption> recordOptions = recordService.getRecordOptions(recordId);
             return ResponseEntity.status(HttpStatus.OK)
                     .body(RecordOptionsResponse.of(recordOptions));
+        }
+
+        @GetMapping("/{record_id}/unit")
+        public ResponseEntity<RecordUnitResponse> getRecordUnit(
+                @PathVariable("record_id") Integer recordId,
+                @Parameter(hidden = true) @UserId Integer userId
+        ) {
+            RecordUnit recordUnit = recordService.getRecordUnit(recordId);
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(RecordUnitResponse.of(recordUnit.getUnit()));
         }
 
         @PostMapping("/{record_id}/options")

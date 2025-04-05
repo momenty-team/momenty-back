@@ -460,4 +460,13 @@ public class RecordService {
     public UserRecord getRecord(Integer recordId) {
         return recordRepository.getById(recordId);
     }
+
+    public RecordUnit getRecordUnit(Integer recordId) {
+        UserRecord record = recordRepository.getById(recordId);
+        RecordMethod recordMethod = record.getMethod();
+        if (!isNumberType(recordMethod) && !isOptionType(recordMethod)) {
+            throw new GlobalException(METHOD_NOT_NEED_UNIT.getMessage(), METHOD_NOT_NEED_UNIT.getStatus());
+        }
+        return recordUnitRepository.getByRecord(record);
+    }
 }
