@@ -45,7 +45,7 @@ public record RecordDetailsResponse(
             LocalDateTime updatedAt
     ) {}
 
-    public static RecordDetailsResponse from(UserRecord record, List<RecordDetailDto> recordDetailDtos) {
+    public static RecordDetailsResponse of(UserRecord record, List<RecordDetailDto> recordDetailDtos) {
         List<RecordDetails> recordDetails = recordDetailDtos.stream()
                 .map(recordDetail -> new RecordDetails(
                         recordDetail.id(),
