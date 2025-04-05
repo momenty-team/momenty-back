@@ -135,15 +135,18 @@ public class RecordService {
                 .build();
         recordDetailRepository.save(recordDetail);
 
-        if (isOptionType(record.getMethod())) {
-            RecordOption recordOption = getRecordOption(recordDetailAddRequest.optionId());
+        if (isOptionType(record.getMethod()) && recordDetailAddRequest.optionIds() != null) {
+            List<RecordDetailOption> options = recordDetailAddRequest.optionIds().stream()
+                    .map(optionId -> {
+                        RecordOption recordOption = getRecordOption(optionId);
+                        return RecordDetailOption.builder()
+                                .recordDetail(recordDetail)
+                                .recordOption(recordOption)
+                                .build();
+                    })
+                    .toList();
 
-            RecordDetailOption recordDetailOption = RecordDetailOption.builder()
-                    .recordDetail(recordDetail)
-                    .recordOption(recordOption)
-                    .build();
-
-            recordDetailOptionRepository.save(recordDetailOption);
+            recordDetailOptionRepository.saveAll(options);
         }
     }
 
