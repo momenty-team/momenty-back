@@ -224,7 +224,7 @@ public class RecordService {
                     .map(option -> option.getRecordOption().getOption() + recordUnit.getUnit())
                     .toList();
         } else if (isNumberType) {
-            content = List.of(recordDetail.getContent() + recordUnit.getUnit());
+            content = List.of(recordDetail.getContent() + " " + recordUnit.getUnit());
         } else {
             content = List.of(recordDetail.getContent());
         }
