@@ -252,13 +252,15 @@ public class RecordService {
         }
 
         User user = userRepository.getById(userId);
-        record.getRecordOptions()
-                .add(RecordOption.builder()
-                                .user(user)
-                                .userRecord(record)
-                                .option(recordOptionAddRequest.option().toUpperCase())
-                                .build()
-                );
+        List<RecordOption> recordOptions = recordOptionAddRequest.options().stream()
+                .map(option -> RecordOption.builder()
+                        .user(user)
+                        .userRecord(record)
+                        .option(option.toUpperCase())
+                        .build())
+                .toList();
+
+        record.getRecordOptions().addAll(recordOptions);
     }
 
     @Transactional
