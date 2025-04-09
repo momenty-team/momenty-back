@@ -33,7 +33,7 @@ public class NotificationTest {
     @Transactional(readOnly = false)
     public void testPublishFriendNotificationEvent() {
         Integer userId = 8;
-        Integer requestUserId = 2;
+        Integer requestUserId = 6;
         NotificationType NotificationType = notificationTypeRepository.getById(1);
 
         FriendNotificationEvent event = new FriendNotificationEvent(NotificationType, requestUserId, userId);
