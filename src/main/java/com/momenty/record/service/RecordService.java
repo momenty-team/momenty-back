@@ -208,7 +208,19 @@ public class RecordService {
                 ? recordUnitRepository.getByRecord(userRecord)
                 : null;
 
-        return getRecordDetailDto(recordDetail, isOptionType, isNumberType, recordUnit);
+        if (isOptionType) {
+            return getOptionTypeRecordDetailDtoWithId(recordDetail);
+        }
+
+        return getRecordDetailDto(recordDetail, false, isNumberType, recordUnit);
+    }
+
+    private RecordDetailDto getOptionTypeRecordDetailDtoWithId(RecordDetail recordDetail) {
+        List<String> content = recordDetailOptionRepository.findByRecordDetail(recordDetail).stream()
+                .map(option -> option.getRecordOption().getId().toString())
+                .toList();
+
+        return RecordDetailDto.of(recordDetail, content);
     }
 
     private RecordDetailDto getRecordDetailDto(
