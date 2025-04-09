@@ -91,8 +91,9 @@
                 @Parameter(hidden = true) @UserId Integer userId
         ) {
             RecordDetailDto recordDetail = recordService.getRecordDetail(recordId, detailId);
+            UserRecord record = recordService.getRecord(recordId);
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(RecordDetailResponse.of(recordDetail));
+                    .body(RecordDetailResponse.of(record, recordDetail));
         }
 
         @GetMapping("/{record_id}/options")
