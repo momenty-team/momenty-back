@@ -312,13 +312,47 @@ public class RecordService {
             Integer detailId
     ) {
         RecordDetail recordDetail = recordDetailRepository.getById(detailId);
+        UserRecord record = recordDetail.getRecord();
+
         recordDetail.update(
                 recordDetailUpdateRequest.content(),
                 recordDetailUpdateRequest.isPublic(),
                 recordDetailUpdateRequest.hour(),
                 recordDetailUpdateRequest.minute()
         );
+
+        if (isOptionType(record.getMethod())) {
+            recordDetailOptionRepository.deleteAllByRecordDetail(recordDetail);
+
+            List<Integer> optionIds = parseOptionIds(recordDetailUpdateRequest.content());
+
+            List<RecordOption> recordOptions = optionIds.stream()
+                    .map(this::getRecordOption)
+                    .toList();
+
+            List<RecordDetailOption> newOptions = recordOptions.stream()
+                    .map(option -> RecordDetailOption.builder()
+                            .recordDetail(recordDetail)
+                            .recordOption(option)
+                            .build())
+                    .toList();
+
+            recordDetailOptionRepository.saveAll(newOptions);
+        }
     }
+
+    private List<Integer> parseOptionIds(String content) {
+        try {
+            return Arrays.stream(content.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .map(Integer::parseInt)
+                    .toList();
+        } catch (NumberFormatException e) {
+            throw new GlobalException(BAD_OPTION_ID.getMessage(), BAD_OPTION_ID.getStatus());
+        }
+    }
+
 
     @Transactional
     public void deleteRecord(Integer recordId) {

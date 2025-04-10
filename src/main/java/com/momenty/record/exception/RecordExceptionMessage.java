@@ -15,6 +15,7 @@ public enum RecordExceptionMessage {
     USED_OPTION_NOT_DELETE("사용중인 옵션은 삭제할 수 없습니다.", HttpStatus.CONFLICT),
     TOO_MANY_PROMPT("AI 요청이 너무 많습니다. 잠시 후 다시 시도해주세요.", HttpStatus.TOO_MANY_REQUESTS),
     BAD_PERIOD("지원하지 않는 기간입니다.", HttpStatus.BAD_REQUEST),
+    BAD_OPTION_ID("잘못된 option id 요청입니다.", HttpStatus.BAD_REQUEST),
     ;
 
     private final String message;
