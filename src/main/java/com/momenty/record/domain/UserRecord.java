@@ -19,11 +19,14 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Size;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Getter
@@ -53,6 +56,14 @@ public class UserRecord {
 
     @OneToOne(mappedBy = "userRecord", cascade = CascadeType.ALL, orphanRemoval = true)
     private RecordUnit recordUnit;
+
+    @CreatedDate
+    @Column(name = "created_at", columnDefinition = "TIMESTAMP", nullable = false)
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column(name = "updated_at", columnDefinition = "TIMESTAMP", nullable = false, updatable = true)
+    private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "record", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RecordOption> recordOptions = new ArrayList<>();

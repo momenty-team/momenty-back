@@ -53,9 +53,12 @@
 
         @GetMapping
         public ResponseEntity<RecordsResponse> getRecords(
-                @Parameter(hidden = true) @UserId Integer userId
+                @Parameter(hidden = true) @UserId Integer userId,
+                @RequestParam(required = false) Integer year,
+                @RequestParam(required = false) Integer month,
+                @RequestParam(required = false) Integer day
         ) {
-            List<UserRecord> userRecords = recordService.getRecords(userId);
+            List<UserRecord> userRecords = recordService.getRecords(userId, year, month, day);
             return ResponseEntity.status(HttpStatus.OK)
                     .body(RecordsResponse.of(userRecords));
         }
