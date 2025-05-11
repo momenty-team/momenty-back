@@ -120,9 +120,20 @@ public class RecordService {
         }
     }
 
-    public List<UserRecord> getRecords(Integer userId) {
+    public List<UserRecord> getRecords(Integer userId, Integer year, Integer month, Integer day) {
+        Pair<LocalDateTime, LocalDateTime> dateFilter = makeDateFilter(year, month, day);
+        LocalDateTime startDate = dateFilter.getLeft();
+        LocalDateTime endDate = dateFilter.getRight();
+
         User user = userRepository.getById(userId);
-        return recordRepository.getAllByUser(user);
+
+        List<UserRecord> records;
+        if (startDate != null && endDate != null) {
+            records = recordRepository.findByUserAndCreatedAtBetweenOrderByCreatedAtDesc(user, startDate, endDate);
+        } else {
+            records = recordRepository.findAllByUserOrderByCreatedAtDesc(user);
+        }
+        return records;
     }
 
     @Transactional
