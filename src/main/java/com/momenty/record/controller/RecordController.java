@@ -6,6 +6,7 @@
     import com.momenty.record.domain.RecordUnit;
     import com.momenty.record.domain.UserRecord;
     import com.momenty.record.dto.NumberTypeRecordTrend;
+    import com.momenty.record.dto.OXTypeRecordTrend;
     import com.momenty.record.dto.RecordAddRequest;
     import com.momenty.record.dto.RecordAnalysisResponse;
     import com.momenty.record.dto.RecordDetailAddRequest;
@@ -232,11 +233,21 @@
         }
 
         @GetMapping("/{record_id}/trends/numbers")
-        public ResponseEntity<NumberTypeRecordTrend> getTrend(
+        public ResponseEntity<NumberTypeRecordTrend> getNumberTypeRecordTrend(
                 @PathVariable("record_id") Integer recordId,
                 @Parameter(hidden = true) @UserId Integer userId
         ) {
             NumberTypeRecordTrend trend = recordService.getNumberTypeRecordTrend(recordId);
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(trend);
+        }
+
+        @GetMapping("/{record_id}/trends/ox")
+        public ResponseEntity<OXTypeRecordTrend> getOXTypeRecordTrend(
+                @PathVariable("record_id") Integer recordId,
+                @Parameter(hidden = true) @UserId Integer userId
+        ) {
+            OXTypeRecordTrend trend = recordService.getOXTypeRecordTrend(recordId);
             return ResponseEntity.status(HttpStatus.OK)
                     .body(trend);
         }
