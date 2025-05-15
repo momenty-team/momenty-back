@@ -2,8 +2,10 @@
 
     import com.momenty.global.annotation.UserId;
     import com.momenty.record.domain.RecordOption;
+    import com.momenty.record.domain.RecordTrendSummary;
     import com.momenty.record.domain.RecordUnit;
     import com.momenty.record.domain.UserRecord;
+    import com.momenty.record.dto.NumberTypeRecordTrend;
     import com.momenty.record.dto.RecordAddRequest;
     import com.momenty.record.dto.RecordAnalysisResponse;
     import com.momenty.record.dto.RecordDetailAddRequest;
@@ -14,6 +16,7 @@
     import com.momenty.record.dto.RecordOptionAddRequest;
     import com.momenty.record.dto.RecordOptionUpdateRequest;
     import com.momenty.record.dto.RecordOptionsResponse;
+    import com.momenty.record.dto.RecordTrendSummaryResponse;
     import com.momenty.record.dto.RecordUnitAddRequest;
     import com.momenty.record.dto.RecordUnitResponse;
     import com.momenty.record.dto.RecordUpdateRequest;
@@ -226,5 +229,25 @@
         ) {
             return recordService.analyzeRecords(period, userId)
                     .map(ResponseEntity::ok);
+        }
+
+        @GetMapping("/{record_id}/trends/numbers")
+        public ResponseEntity<NumberTypeRecordTrend> getTrend(
+                @PathVariable("record_id") Integer recordId,
+                @Parameter(hidden = true) @UserId Integer userId
+        ) {
+            NumberTypeRecordTrend trend = recordService.getNumberTypeRecordTrend(recordId);
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(trend);
+        }
+
+        @GetMapping("/{record_id}/trends/summary")
+        public ResponseEntity<RecordTrendSummaryResponse> getTrendSummary(
+                @PathVariable("record_id") Integer recordId,
+                @Parameter(hidden = true) @UserId Integer userId
+        ) {
+            RecordTrendSummary trendSummary = recordService.getTrendSummary(recordId);
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(RecordTrendSummaryResponse.of(trendSummary.getContent()));
         }
     }

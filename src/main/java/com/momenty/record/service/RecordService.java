@@ -5,6 +5,7 @@ import static com.momenty.record.domain.RecordAnalysisMessage.DATE_AND_CONTENT_S
 import static com.momenty.record.domain.RecordAnalysisMessage.DATE_PATTERN;
 import static com.momenty.record.domain.RecordAnalysisMessage.PROMPT;
 import static com.momenty.record.domain.RecordAnalysisMessage.RECORD_CONTENT;
+import static com.momenty.record.domain.RecordAnalysisMessage.TREND_PROMPT;
 import static com.momenty.record.exception.RecordExceptionMessage.*;
 
 import com.momenty.global.exception.GlobalException;
@@ -14,8 +15,10 @@ import com.momenty.record.domain.RecordDetail;
 import com.momenty.record.domain.RecordDetailOption;
 import com.momenty.record.domain.RecordMethod;
 import com.momenty.record.domain.RecordOption;
+import com.momenty.record.domain.RecordTrendSummary;
 import com.momenty.record.domain.RecordUnit;
 import com.momenty.record.domain.UserRecord;
+import com.momenty.record.dto.NumberTypeRecordTrend;
 import com.momenty.record.dto.RecordAddRequest;
 import com.momenty.record.dto.RecordAnalysisResponse;
 import com.momenty.record.dto.RecordDetailAddRequest;
@@ -29,18 +32,24 @@ import com.momenty.record.repository.RecordDetailOptionRepository;
 import com.momenty.record.repository.RecordDetailRepository;
 import com.momenty.record.repository.RecordOptionRepository;
 import com.momenty.record.repository.RecordRepository;
+import com.momenty.record.repository.RecordTrendSummaryRepository;
 import com.momenty.record.repository.RecordUnitRepository;
 import com.momenty.record.util.AiClient;
 import com.momenty.user.domain.User;
 import com.momenty.user.repository.UserRepository;
 import com.nimbusds.jose.util.Pair;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -52,12 +61,15 @@ import reactor.core.publisher.Mono;
 @Transactional(readOnly = true)
 public class RecordService {
 
+    private final static String NOT_MAKE_SUMMARY = "요약 정보를 생성할 수 없습니다.";
+
     private final RecordRepository recordRepository;
     private final UserRepository userRepository;
     private final RecordOptionRepository recordOptionRepository;
     private final RecordUnitRepository recordUnitRepository;
     private final RecordDetailOptionRepository recordDetailOptionRepository;
     private final RecordDetailRepository recordDetailRepository;
+    private final RecordTrendSummaryRepository recordTrendSummaryRepository;
     private final AiClient aiClient;
 
     @Transactional
@@ -530,5 +542,106 @@ public class RecordService {
             throw new GlobalException(METHOD_NOT_NEED_UNIT.getMessage(), METHOD_NOT_NEED_UNIT.getStatus());
         }
         return recordUnitRepository.getByRecord(record);
+    }
+
+    public NumberTypeRecordTrend getNumberTypeRecordTrend(Integer recordId) {
+        UserRecord record = recordRepository.getById(recordId);
+        if (!isNumberType(record.getMethod())) {
+            throw  new GlobalException(METHOD_NOT_RECORD_NUMBER.getMessage(), METHOD_NOT_RECORD_NUMBER.getStatus());
+        }
+
+        List<RecordDetail> thisWeekRecord = findThisWeekRecord(record);
+        Map<DayOfWeek, Long> countsByDay = getCountsByDayOfWeek(thisWeekRecord);
+        int totalCount = thisWeekRecord.size();
+        double averageCount = totalCount / 7.0;
+        int roundedAverage = (int) Math.round(averageCount);
+
+        return NumberTypeRecordTrend.of(
+                countsByDay.getOrDefault(DayOfWeek.MONDAY, 0L).intValue(),
+                countsByDay.getOrDefault(DayOfWeek.TUESDAY, 0L).intValue(),
+                countsByDay.getOrDefault(DayOfWeek.WEDNESDAY, 0L).intValue(),
+                countsByDay.getOrDefault(DayOfWeek.THURSDAY, 0L).intValue(),
+                countsByDay.getOrDefault(DayOfWeek.FRIDAY, 0L).intValue(),
+                countsByDay.getOrDefault(DayOfWeek.SATURDAY, 0L).intValue(),
+                countsByDay.getOrDefault(DayOfWeek.SUNDAY, 0L).intValue(),
+                totalCount,
+                roundedAverage
+        );
+    }
+
+    private String generateTrendSummary(UserRecord record, List<RecordDetail> thisWeekRecord) {
+        String prompt = buildPrompt(record, thisWeekRecord);
+        System.out.println(prompt);
+        RecordAnalysisResponse response = aiClient.requestSummary(prompt).block();
+        return Optional.ofNullable(response)
+                .map(RecordAnalysisResponse::result)
+                .orElse(NOT_MAKE_SUMMARY);
+    }
+
+    private List<RecordDetail> findThisWeekRecord(UserRecord record) {
+        return recordDetailRepository.findByRecordAndCreatedAtBetweenOrderByCreatedAtDesc(
+                record,
+                LocalDateTime.now().minusDays(6).withHour(0).withMinute(0).withSecond(0).withNano(0),
+                LocalDateTime.now().withHour(23).withMinute(59).withSecond(59).withNano(999999999)
+        );
+    }
+
+    private Map<DayOfWeek, Long> getCountsByDayOfWeek(List<RecordDetail> records) {
+        return records.stream()
+                .collect(Collectors.groupingBy(
+                        record -> record.getCreatedAt().getDayOfWeek(),
+                        () -> new EnumMap<>(DayOfWeek.class),
+                        Collectors.counting()
+                ));
+    }
+
+    private String buildPrompt(UserRecord record, List<RecordDetail> details) {
+        List<RecordDetailDto> recordDetailDtos = getRecordDetailDtos(record, details);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_PATTERN.getMessage());
+
+        StringBuilder fullContent = new StringBuilder();
+
+        String title = record.getTitle();
+        String recordContent = recordDetailDtos.stream()
+                .sorted(Comparator.comparing(RecordDetailDto::createdAt).reversed())
+                .limit(70)
+                .map(detail -> detail.createdAt().format(formatter)
+                        + DATE_AND_CONTENT_SEPARATOR.getMessage()
+                        + String.join(", ", detail.content()))
+                .collect(Collectors.joining(CONTENT_AND_PROMPT.getMessage()));
+
+        fullContent.append("[").append(title).append("]").append("\n")
+                .append(recordContent)
+                .append("\n\n");
+
+        return TREND_PROMPT.getMessage()
+                + "\n\n" + RECORD_CONTENT.getMessage() + "\n"
+                + fullContent;
+    }
+
+    @Transactional
+    public RecordTrendSummary getTrendSummary(Integer recordId) {
+        UserRecord record = recordRepository.getById(recordId);
+        Optional<RecordTrendSummary> trendSummary = findTodayTrendSummary(record);
+        if (trendSummary.isPresent()) {
+            return trendSummary.get();
+        }
+
+        List<RecordDetail> thisWeekRecord = findThisWeekRecord(record);
+        String summary = generateTrendSummary(record, thisWeekRecord);
+
+        RecordTrendSummary recordTrendSummary = RecordTrendSummary.builder()
+                .record(record)
+                .content(summary)
+                .build();
+        return recordTrendSummaryRepository.save(recordTrendSummary);
+    }
+
+    private Optional<RecordTrendSummary> findTodayTrendSummary(UserRecord record) {
+        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+        LocalDateTime endOfDay = LocalDate.now().atTime(LocalTime.MAX);
+
+        return recordTrendSummaryRepository.findByRecordAndCreatedAtBetween(record, startOfDay, endOfDay);
     }
 }

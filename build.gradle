@@ -30,6 +30,10 @@ dependencyManagement {
 }
 
 dependencies {
+	implementation 'org.hibernate.common:hibernate-commons-annotations:6.0.6.Final'
+	implementation 'org.hibernate.orm:hibernate-core:6.5.3.Final'
+
+
 	// WebClient 사용을 위한 Spring WebFlux
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
