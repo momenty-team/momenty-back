@@ -19,6 +19,8 @@ import com.momenty.record.domain.RecordTrendSummary;
 import com.momenty.record.domain.RecordUnit;
 import com.momenty.record.domain.UserRecord;
 import com.momenty.record.dto.NumberTypeRecordTrend;
+import com.momenty.record.dto.OXTypeRecordTrend;
+import com.momenty.record.dto.OXTypeRecordTrend.OXCount;
 import com.momenty.record.dto.RecordAddRequest;
 import com.momenty.record.dto.RecordAnalysisResponse;
 import com.momenty.record.dto.RecordDetailAddRequest;
@@ -122,6 +124,14 @@ public class RecordService {
 
     private boolean isOptionType(RecordMethod recordMethod) {
         return RecordMethod.OPTION_TYPE.equals(recordMethod);
+    }
+
+    private boolean isOXType(RecordMethod recordMethod) {
+        return RecordMethod.BOOLEAN_TYPE.equals(recordMethod);
+    }
+
+    private boolean isTextType(RecordMethod recordMethod) {
+        return RecordMethod.TEXT_TYPE.equals(recordMethod);
     }
 
     private void validMethodType(String method) {
@@ -643,5 +653,61 @@ public class RecordService {
         LocalDateTime endOfDay = LocalDate.now().atTime(LocalTime.MAX);
 
         return recordTrendSummaryRepository.findByRecordAndCreatedAtBetween(record, startOfDay, endOfDay);
+    }
+
+    public OXTypeRecordTrend getOXTypeRecordTrend(Integer recordId) {
+        UserRecord record = recordRepository.getById(recordId);
+        if (!isOXType(record.getMethod())) {
+            throw new GlobalException(METHOD_NOT_RECORD_OX.getMessage(), METHOD_NOT_RECORD_OX.getStatus());
+        }
+
+        List<RecordDetail> thisWeekRecord = findThisWeekRecord(record);
+
+        Map<DayOfWeek, OXCount> countsByDay = getOXCountsByDayOfWeek(thisWeekRecord);
+        OXCount totalCounts = calculateTotalCounts(countsByDay);
+        double averageCount = (totalCounts.oCount() + totalCounts.xCount()) / 7.0;
+        int roundedAverage = (int) Math.round(averageCount);
+
+        return OXTypeRecordTrend.of(
+                countsByDay.getOrDefault(DayOfWeek.MONDAY, new OXCount(0, 0)),
+                countsByDay.getOrDefault(DayOfWeek.TUESDAY, new OXCount(0, 0)),
+                countsByDay.getOrDefault(DayOfWeek.WEDNESDAY, new OXCount(0, 0)),
+                countsByDay.getOrDefault(DayOfWeek.THURSDAY, new OXCount(0, 0)),
+                countsByDay.getOrDefault(DayOfWeek.FRIDAY, new OXCount(0, 0)),
+                countsByDay.getOrDefault(DayOfWeek.SATURDAY, new OXCount(0, 0)),
+                countsByDay.getOrDefault(DayOfWeek.SUNDAY, new OXCount(0, 0)),
+                totalCounts,
+                roundedAverage
+        );
+    }
+
+    private Map<DayOfWeek, OXCount> getOXCountsByDayOfWeek(List<RecordDetail> records) {
+        Map<DayOfWeek, OXCount> countsByDay = new EnumMap<>(DayOfWeek.class);
+
+        for (RecordDetail record : records) {
+            DayOfWeek dayOfWeek = record.getCreatedAt().getDayOfWeek();
+            boolean isO = "O".equals(record.getContent());
+            boolean isX = "X".equals(record.getContent());
+
+            OXCount currentCount = countsByDay.getOrDefault(dayOfWeek, new OXCount(0, 0));
+            int newOCount = currentCount.oCount() + (isO ? 1 : 0);
+            int newXCount = currentCount.xCount() + (isX ? 1 : 0);
+
+            countsByDay.put(dayOfWeek, new OXCount(newOCount, newXCount));
+        }
+
+        return countsByDay;
+    }
+
+    private OXCount calculateTotalCounts(Map<DayOfWeek, OXCount> countsByDay) {
+        int totalO = 0;
+        int totalX = 0;
+
+        for (OXCount count : countsByDay.values()) {
+            totalO += count.oCount();
+            totalX += count.xCount();
+        }
+
+        return new OXCount(totalO, totalX);
     }
 }
