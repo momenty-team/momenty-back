@@ -35,4 +35,6 @@ public interface RecordRepository extends Repository<UserRecord, Integer> {
     }
 
     void deleteById(Integer id);
+
+    List<UserRecord> findAllByUser(User user);
 }

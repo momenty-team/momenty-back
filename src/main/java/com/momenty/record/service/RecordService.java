@@ -4,6 +4,7 @@ import static com.momenty.record.domain.RecordAnalysisMessage.CONTENT_AND_PROMPT
 import static com.momenty.record.domain.RecordAnalysisMessage.DATE_AND_CONTENT_SEPARATOR;
 import static com.momenty.record.domain.RecordAnalysisMessage.DATE_PATTERN;
 import static com.momenty.record.domain.RecordAnalysisMessage.PROMPT;
+import static com.momenty.record.domain.RecordAnalysisMessage.RECORDS_SUMMARY_PROMPT;
 import static com.momenty.record.domain.RecordAnalysisMessage.RECORD_CONTENT;
 import static com.momenty.record.domain.RecordAnalysisMessage.TREND_PROMPT;
 import static com.momenty.record.exception.RecordExceptionMessage.*;
@@ -59,7 +60,6 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -614,7 +614,14 @@ public class RecordService {
 
     private String buildPrompt(UserRecord record, List<RecordDetail> details) {
         List<RecordDetailDto> recordDetailDtos = getRecordDetailDtos(record, details);
+        StringBuilder prompt = writeRecordDetailPrompt(record, recordDetailDtos, 70);
 
+        return TREND_PROMPT.getMessage()
+                + "\n\n" + RECORD_CONTENT.getMessage() + "\n"
+                + prompt;
+    }
+
+    private StringBuilder writeRecordDetailPrompt(UserRecord record, List<RecordDetailDto> recordDetailDtos, Integer maxSize) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_PATTERN.getMessage());
 
         StringBuilder fullContent = new StringBuilder();
@@ -622,7 +629,7 @@ public class RecordService {
         String title = record.getTitle();
         String recordContent = recordDetailDtos.stream()
                 .sorted(Comparator.comparing(RecordDetailDto::createdAt).reversed())
-                .limit(70)
+                .limit(maxSize)
                 .map(detail -> detail.createdAt().format(formatter)
                         + DATE_AND_CONTENT_SEPARATOR.getMessage()
                         + String.join(", ", detail.content()))
@@ -632,9 +639,7 @@ public class RecordService {
                 .append(recordContent)
                 .append("\n\n");
 
-        return TREND_PROMPT.getMessage()
-                + "\n\n" + RECORD_CONTENT.getMessage() + "\n"
-                + fullContent;
+        return fullContent;
     }
 
     @Transactional
@@ -805,5 +810,77 @@ public class RecordService {
                 totalCount,
                 roundedAverage
         );
+    }
+
+    public String getRecordsSummary(Integer userId, Integer year, Integer month, Integer day) {
+        Pair<LocalDateTime, LocalDateTime> dateFilter = makeDateFilter(year, month, day);
+        LocalDateTime startDate = dateFilter.getLeft();
+        LocalDateTime endDate = dateFilter.getRight();
+
+        User user = userRepository.getById(userId);
+
+        List<UserRecord> userRecords = recordRepository.findAllByUser(user);
+        if (userRecords.isEmpty()) {
+            return "";
+        }
+
+        List<RecordDetail> recordDetails = recordDetailRepository
+                        .findByRecordInAndCreatedAtBetweenOrderByCreatedAtDesc(userRecords, startDate, endDate)
+                        .stream()
+                        .limit(200)
+                        .toList();
+        if (recordDetails.isEmpty()) {
+            return "";
+        }
+
+        Map<UserRecord, List<RecordDetailDto>> recordDetailDtoMap = userRecords.stream()
+                .collect(Collectors.toMap(
+                        record -> record,
+                        record -> {
+                            List<RecordDetail> detailsForRecord = recordDetails.stream()
+                                    .filter(detail -> detail.getRecord().equals(record))
+                                    .toList();
+                            return toRecordDetailDtos(record, detailsForRecord);
+                        }
+                ));
+
+        return requestGptForRecordSummary(recordDetailDtoMap);
+    }
+
+    private String requestGptForRecordSummary(Map<UserRecord, List<RecordDetailDto>> recordDetailDtoMap) {
+        StringBuilder promptBuilder = new StringBuilder(RECORDS_SUMMARY_PROMPT.getMessage());
+
+        for (Map.Entry<UserRecord, List<RecordDetailDto>> entry : recordDetailDtoMap.entrySet()) {
+            UserRecord record = entry.getKey();
+            String topic = record.getTitle();
+            List<RecordDetailDto> details = entry.getValue();
+
+            promptBuilder.append("주제: ").append(topic).append("\n");
+            for (RecordDetailDto detail : details) {
+                promptBuilder.append("- ").append(detail.content()).append("\n");
+            }
+            promptBuilder.append("\n");
+        }
+
+        String prompt = promptBuilder.toString();
+
+        System.out.println("기록 요약 prompt 내용: \n" + prompt);
+
+        return Optional.ofNullable(aiClient.requestSummary(prompt).block())
+                .map(RecordAnalysisResponse::result)
+                .orElse("");
+    }
+
+    private List<RecordDetailDto> toRecordDetailDtos(UserRecord record, List<RecordDetail> details) {
+        boolean isOptionType = isOptionType(record.getMethod());
+        boolean isNumberType = isNumberType(record.getMethod());
+
+        RecordUnit recordUnit = (isOptionType || isNumberType)
+                ? recordUnitRepository.getByRecord(record)
+                : null;
+
+        return details.stream()
+                .map(detail -> getRecordDetailDto(detail, isOptionType, isNumberType, recordUnit))
+                .toList();
     }
 }
