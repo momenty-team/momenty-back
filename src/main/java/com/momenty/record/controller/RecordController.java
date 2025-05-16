@@ -7,6 +7,7 @@
     import com.momenty.record.domain.UserRecord;
     import com.momenty.record.dto.NumberTypeRecordTrend;
     import com.momenty.record.dto.OXTypeRecordTrend;
+    import com.momenty.record.dto.OptionTypeRecordTrend;
     import com.momenty.record.dto.RecordAddRequest;
     import com.momenty.record.dto.RecordAnalysisResponse;
     import com.momenty.record.dto.RecordDetailAddRequest;
@@ -251,6 +252,17 @@
             return ResponseEntity.status(HttpStatus.OK)
                     .body(trend);
         }
+
+        @GetMapping("/{record_id}/trends/options")
+        public ResponseEntity<OptionTypeRecordTrend> getOptionTypeRecordTrend(
+                @PathVariable("record_id") Integer recordId,
+                @Parameter(hidden = true) @UserId Integer userId
+        ) {
+            OptionTypeRecordTrend trend = recordService.getOptionTypeRecordTrend(recordId);
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(trend);
+        }
+
 
         @GetMapping("/{record_id}/trends/summary")
         public ResponseEntity<RecordTrendSummaryResponse> getTrendSummary(

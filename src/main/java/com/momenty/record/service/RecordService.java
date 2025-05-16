@@ -8,6 +8,9 @@ import static com.momenty.record.domain.RecordAnalysisMessage.RECORD_CONTENT;
 import static com.momenty.record.domain.RecordAnalysisMessage.TREND_PROMPT;
 import static com.momenty.record.exception.RecordExceptionMessage.*;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.stream.Collectors;
 import com.momenty.global.exception.GlobalException;
 import com.momenty.record.domain.AnalysisPeriod;
 import com.momenty.record.domain.RecordAnalysisStatusMessage;
@@ -21,6 +24,9 @@ import com.momenty.record.domain.UserRecord;
 import com.momenty.record.dto.NumberTypeRecordTrend;
 import com.momenty.record.dto.OXTypeRecordTrend;
 import com.momenty.record.dto.OXTypeRecordTrend.OXCount;
+import com.momenty.record.dto.OptionTypeRecordTrend;
+import com.momenty.record.dto.OptionTypeRecordTrend.DayRecord;
+import com.momenty.record.dto.OptionTypeRecordTrend.OptionDetail;
 import com.momenty.record.dto.RecordAddRequest;
 import com.momenty.record.dto.RecordAnalysisResponse;
 import com.momenty.record.dto.RecordDetailAddRequest;
@@ -709,5 +715,69 @@ public class RecordService {
         }
 
         return new OXCount(totalO, totalX);
+    }
+
+    public OptionTypeRecordTrend getOptionTypeRecordTrend(Integer recordId) {
+        UserRecord record = recordRepository.getById(recordId);
+        if (!isOptionType(record.getMethod())) {
+            throw new GlobalException(METHOD_NOT_RECORD_OPTION.getMessage(), METHOD_NOT_RECORD_OPTION.getStatus());
+        }
+
+        List<RecordDetail> thisWeekRecord = findThisWeekRecord(record);
+
+        Map<DayOfWeek, List<RecordDetail>> recordsByDay = thisWeekRecord.stream()
+                .collect(Collectors.groupingBy(
+                        detail -> detail.getCreatedAt().getDayOfWeek()
+                ));
+
+        Map<OptionDetail, Long> optionFrequencyMap = new HashMap<>();
+        String unit = recordUnitRepository.getByRecord(record).getUnit();
+
+        DayRecord monday = createDayRecord(recordsByDay.get(DayOfWeek.MONDAY), optionFrequencyMap, unit);
+        DayRecord tuesday = createDayRecord(recordsByDay.get(DayOfWeek.TUESDAY), optionFrequencyMap, unit);
+        DayRecord wednesday = createDayRecord(recordsByDay.get(DayOfWeek.WEDNESDAY), optionFrequencyMap, unit);
+        DayRecord thursday = createDayRecord(recordsByDay.get(DayOfWeek.THURSDAY), optionFrequencyMap, unit);
+        DayRecord friday = createDayRecord(recordsByDay.get(DayOfWeek.FRIDAY), optionFrequencyMap, unit);
+        DayRecord saturday = createDayRecord(recordsByDay.get(DayOfWeek.SATURDAY), optionFrequencyMap, unit);
+        DayRecord sunday = createDayRecord(recordsByDay.get(DayOfWeek.SUNDAY), optionFrequencyMap, unit);
+
+        int totalCount = thisWeekRecord.size();
+        OptionDetail mostFrequentOption = getMostFrequentOption(optionFrequencyMap);
+
+        return OptionTypeRecordTrend.of(
+                monday, tuesday, wednesday, thursday, friday, saturday, sunday, totalCount, mostFrequentOption
+        );
+    }
+
+    private DayRecord createDayRecord(
+            List<RecordDetail> records,
+            Map<OptionDetail, Long> optionFrequencyMap,
+            String unit
+    ) {
+        if (records == null || records.isEmpty()) {
+            return new DayRecord(0, Collections.emptyList());
+        }
+
+        List<OptionDetail> optionDetails = records.stream()
+                .flatMap(record -> record.getRecordDetailOptions().stream())
+                .map(option -> {
+                    RecordOption recordOption = option.getRecordOption();
+                    return new OptionDetail(recordOption.getId(), recordOption.getOption() + unit);
+                })
+                .collect(Collectors.toList());
+
+        // 옵션 빈도 업데이트
+        for (OptionDetail option : optionDetails) {
+            optionFrequencyMap.put(option, optionFrequencyMap.getOrDefault(option, 0L) + 1);
+        }
+
+        return new DayRecord(optionDetails.size(), optionDetails);
+    }
+
+    private OptionDetail getMostFrequentOption(Map<OptionDetail, Long> optionFrequencyMap) {
+        return optionFrequencyMap.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse(new OptionDetail(null, "None"));
     }
 }
