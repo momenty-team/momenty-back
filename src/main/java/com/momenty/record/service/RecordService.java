@@ -8,6 +8,7 @@ import static com.momenty.record.domain.RecordAnalysisMessage.RECORD_CONTENT;
 import static com.momenty.record.domain.RecordAnalysisMessage.TREND_PROMPT;
 import static com.momenty.record.exception.RecordExceptionMessage.*;
 
+import com.momenty.record.dto.TextTypeRecordTrend;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.stream.Collectors;
@@ -779,5 +780,30 @@ public class RecordService {
                 .max(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey)
                 .orElse(new OptionDetail(null, "None"));
+    }
+
+    public TextTypeRecordTrend getTextTypeRecordTrend(Integer recordId) {
+        UserRecord record = recordRepository.getById(recordId);
+        if (!isTextType(record.getMethod())) {
+            throw new GlobalException(METHOD_NOT_RECORD_TEXT.getMessage(), METHOD_NOT_RECORD_TEXT.getStatus());
+        }
+
+        List<RecordDetail> thisWeekRecord = findThisWeekRecord(record);
+        Map<DayOfWeek, Long> countsByDay = getCountsByDayOfWeek(thisWeekRecord);
+        int totalCount = thisWeekRecord.size();
+        double averageCount = totalCount / 7.0;
+        int roundedAverage = (int) Math.round(averageCount);
+
+        return TextTypeRecordTrend.of(
+                countsByDay.getOrDefault(DayOfWeek.MONDAY, 0L).intValue(),
+                countsByDay.getOrDefault(DayOfWeek.TUESDAY, 0L).intValue(),
+                countsByDay.getOrDefault(DayOfWeek.WEDNESDAY, 0L).intValue(),
+                countsByDay.getOrDefault(DayOfWeek.THURSDAY, 0L).intValue(),
+                countsByDay.getOrDefault(DayOfWeek.FRIDAY, 0L).intValue(),
+                countsByDay.getOrDefault(DayOfWeek.SATURDAY, 0L).intValue(),
+                countsByDay.getOrDefault(DayOfWeek.SUNDAY, 0L).intValue(),
+                totalCount,
+                roundedAverage
+        );
     }
 }

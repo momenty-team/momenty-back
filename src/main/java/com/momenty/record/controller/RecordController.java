@@ -23,6 +23,7 @@
     import com.momenty.record.dto.RecordUnitResponse;
     import com.momenty.record.dto.RecordUpdateRequest;
     import com.momenty.record.dto.RecordsResponse;
+    import com.momenty.record.dto.TextTypeRecordTrend;
     import com.momenty.record.service.RecordService;
     import io.swagger.v3.oas.annotations.Parameter;
     import java.util.List;
@@ -263,6 +264,15 @@
                     .body(trend);
         }
 
+        @GetMapping("/{record_id}/trends/texts")
+        public ResponseEntity<TextTypeRecordTrend> getTextTypeRecordTrend(
+                @PathVariable("record_id") Integer recordId,
+                @Parameter(hidden = true) @UserId Integer userId
+        ) {
+            TextTypeRecordTrend trend = recordService.getTextTypeRecordTrend(recordId);
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(trend);
+        }
 
         @GetMapping("/{record_id}/trends/summary")
         public ResponseEntity<RecordTrendSummaryResponse> getTrendSummary(
