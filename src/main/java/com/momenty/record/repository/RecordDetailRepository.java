@@ -33,4 +33,9 @@ public interface RecordDetailRepository extends Repository<RecordDetail, Integer
     }
 
     void deleteById(Integer detailId);
+
+    List<RecordDetail> findByRecordInAndCreatedAtBetweenOrderByCreatedAtDesc(
+            List<UserRecord> userRecords, LocalDateTime startDate, LocalDateTime endDate
+    );
+
 }
