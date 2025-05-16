@@ -38,4 +38,5 @@ public interface RecordDetailRepository extends Repository<RecordDetail, Integer
             List<UserRecord> userRecords, LocalDateTime startDate, LocalDateTime endDate
     );
 
+    boolean existsByRecordIdAndCreatedAtBetween(Integer recordId, LocalDateTime startDate, LocalDateTime endDate);
 }

@@ -12,6 +12,7 @@ import com.momenty.notification.repository.NotificationRepository;
 import com.momenty.notification.repository.NotificationTypeRepository;
 import com.momenty.notification.repository.UserNotificationHistoryRepository;
 import com.momenty.notification.repository.UserNotificationSettingRepository;
+import com.momenty.record.domain.UserRecord;
 import com.momenty.user.domain.User;
 import com.momenty.user.repository.UserRepository;
 import java.util.HashMap;
@@ -100,9 +101,8 @@ public class NotificationService {
             return;
         }
 
-        writeNotification(notification, userNickname);
         String title = notification.getTitle();
-        String content = notification.getContent();
+        String content = writeNotification(notification, userNickname);
         String iconUrl = notification.getIconUrl();
 
         sendNotificationData(userId, token, title, content, iconUrl);
@@ -143,20 +143,63 @@ public class NotificationService {
     }
 
     @Transactional
-    protected void writeNotification(Notification notification, String userNickname) {
+    protected String writeNotification(Notification notification, String variable) {
         String type = notification.getNotificationType().getType();
 
-        String newContent = switch (type) {
-            case "친구신청", "기록알림", "팔로우" -> userNickname + notification.getContent();
+        return switch (type) {
+            case "친구신청", "기록알림", "팔로우", "기록작성알림" -> variable + notification.getContent();
             default -> notification.getContent();
         };
-
-        notification.updateContent(newContent);
     }
 
     @Transactional
     public void addUserNotificationHistory(Integer userId, String title, String content, String iconUrl) {
         User user = userRepository.getById(userId);
         userNotificationHistoryRepository.save(UserNotificationHistory.create(user, title, content, iconUrl));
+    }
+
+    @Transactional
+    public void sendRecordNotification(Integer userId, UserRecord record) {
+        Optional<NotificationType> notificationTypeOptional = notificationTypeRepository.findByType("기록작성알림");
+        if (notificationTypeOptional.isEmpty()) {
+            return;
+        }
+        NotificationType notificationType = notificationTypeOptional.get();
+        if (checkNotificationSetting(userId, notificationType)) {
+            return;
+        }
+        Notification notification = notificationRepository.getByTypeWithNotificationType(notificationType);
+        if (notification == null) {
+            return;
+        }
+
+        User user = userRepository.getById(userId);
+        String token = user.getNotificationToken();
+        String recordTitle = record.getTitle();
+        sendRecordNotificationData(userId, user.getNickname(), token, notification, recordTitle);
+    }
+
+    private void sendRecordNotificationData(
+            Integer userId, String userNickname, String token, Notification notification, String recordTitle
+    ) {
+        if (!StringUtils.hasText(token)) {
+            log.info("푸시 토큰이 없는 사용자입니다. userId={}", userId);
+            return;
+        }
+
+        String title = notification.getTitle();
+        String content = writeNotification(notification, userNickname + "님, " + recordTitle);
+        String iconUrl = notification.getIconUrl();
+
+        sendNotificationData(userId, token, title, content, iconUrl);
+    }
+
+    private boolean checkNotificationSetting(Integer userId, NotificationType notificationType) {
+        Optional<UserNotificationSetting> userNotificationSetting =
+                userNotificationSettingRepository.findById(
+                        UserNotificationSettingId.of(userId, notificationType.getId())
+                );
+
+        return userNotificationSetting.isEmpty();
     }
 }

@@ -37,7 +37,7 @@ public class UserRecordAvgTime {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "record_id", nullable = false)
     private UserRecord record;
 
