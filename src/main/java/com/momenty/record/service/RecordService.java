@@ -9,7 +9,9 @@ import static com.momenty.record.domain.RecordAnalysisMessage.RECORD_CONTENT;
 import static com.momenty.record.domain.RecordAnalysisMessage.TREND_PROMPT;
 import static com.momenty.record.exception.RecordExceptionMessage.*;
 
+import com.momenty.record.domain.UserRecordAvgTime;
 import com.momenty.record.dto.TextTypeRecordTrend;
+import com.momenty.record.repository.UserRecordAvgTimeRepository;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.stream.Collectors;
@@ -79,6 +81,7 @@ public class RecordService {
     private final RecordDetailOptionRepository recordDetailOptionRepository;
     private final RecordDetailRepository recordDetailRepository;
     private final RecordTrendSummaryRepository recordTrendSummaryRepository;
+    private final UserRecordAvgTimeRepository avgTimeRepository;
     private final AiClient aiClient;
 
     @Transactional
@@ -188,6 +191,24 @@ public class RecordService {
 
             recordDetailOptionRepository.saveAll(options);
         }
+
+        Integer createdHour = recordDetail.getCreatedAt().getHour();
+        updateAverageHour(record, createdHour);
+    }
+
+    public void updateAverageHour(UserRecord record, Integer newHour) {
+        User user = record.getUser();
+
+        Optional<UserRecordAvgTime> optionalAvgTime = avgTimeRepository.findByUserAndRecord(user, record);
+
+        UserRecordAvgTime avgTime;
+        if (optionalAvgTime.isPresent()) {
+            avgTime = optionalAvgTime.get();
+            avgTime.updateAverageHour(newHour);
+        } else {
+            avgTime = new UserRecordAvgTime(user, record, newHour);
+        }
+        avgTimeRepository.save(avgTime);
     }
 
     private RecordOption getRecordOption(Integer recordOptionId) {
