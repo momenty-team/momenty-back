@@ -10,11 +10,12 @@ import static com.momenty.record.domain.RecordAnalysisMessage.RECORD_CONTENT;
 import static com.momenty.record.domain.RecordAnalysisMessage.TREND_PROMPT;
 import static com.momenty.record.exception.RecordExceptionMessage.*;
 
+import com.momenty.record.domain.RecordFeedback;
 import com.momenty.record.domain.UserRecordAvgTime;
 import com.momenty.record.dto.RecordFeedbackRequest;
 import com.momenty.record.dto.TextTypeRecordTrend;
+import com.momenty.record.repository.RecordFeedbackRepository;
 import com.momenty.record.repository.UserRecordAvgTimeRepository;
-import jakarta.validation.constraints.NotNull;
 import java.time.Period;
 import java.util.Collections;
 import java.util.HashMap;
@@ -89,6 +90,7 @@ public class RecordService {
     private final RecordDetailRepository recordDetailRepository;
     private final RecordTrendSummaryRepository recordTrendSummaryRepository;
     private final UserRecordAvgTimeRepository avgTimeRepository;
+    private final RecordFeedbackRepository recordFeedbackRepository;
     private final AiClient aiClient;
 
     @Transactional
@@ -884,13 +886,25 @@ public class RecordService {
                 .toList();
     }
 
-    public String getRecordFeedback(
+    @Transactional
+    public RecordFeedback getRecordFeedback(
             RecordFeedbackRequest recordFeedbackRequest,
             Integer year, Integer month, Integer day, Integer userId
     ) {
         LocalDate targetDate = LocalDate.of(year, month, day);
         LocalDateTime startDate = targetDate.minusDays(7).atStartOfDay();
         LocalDateTime endDate = targetDate.atTime(LocalTime.MAX);
+
+        User user = userRepository.getById(userId);
+
+        Optional<RecordFeedback> recordFeedback =
+                recordFeedbackRepository.findFirstByUserAndCreatedAtBetweenOrderByCreatedAtDesc(
+                        user, targetDate.atStartOfDay(), targetDate.atTime(LocalTime.MAX)
+                );
+
+        if (recordFeedback.isPresent()) {
+            return recordFeedback.get();
+        }
 
         Pageable pageable = PageRequest.of(0, 1000);
         List<RecordDetail> recordDetails = recordDetailRepository.findRecentDetails(userId, startDate, endDate, pageable);
@@ -904,14 +918,18 @@ public class RecordService {
         List<RecordTrendSummary> otherUsersRecordSummary =
                 recordTrendSummaryRepository.findRecentSummariesFromOtherUsers(userId, pageable);
 
-        User user = userRepository.getById(userId);
         String gender = (user.getGender() != null) ? user.getGender().name() : "정보 없음";
         int age = (user.getBirthDate() != null) ? Period.between(user.getBirthDate(), LocalDate.now()).getYears() : 0;
 
         String userInfo = "성별: " + gender + ", 나이: " + age + ", 닉네임: " + user.getNickname();
 
 
-        return requestGptForRecordFeedback(userInfo, recordSummary, recordFeedbackRequest.healthKit(), otherUsersRecordSummary);
+        String result =
+                requestGptForRecordFeedback(
+                        userInfo, recordSummary, recordFeedbackRequest.healthKit(), otherUsersRecordSummary
+                );
+
+        return recordFeedbackRepository.save(createRecordFeedback(user, result));
     }
 
     private String requestGptForRecordFeedback(
@@ -960,5 +978,37 @@ public class RecordService {
                             return getRecordDetailDtos(record, details);
                         }
                 ));
+    }
+
+    private RecordFeedback createRecordFeedback(User user, String result) {
+        if (result == null || result.isBlank()) {
+            throw new GlobalException(AI_MAKE_BAD_RESPONSE.getMessage(), AI_MAKE_BAD_RESPONSE.getStatus());
+        }
+
+        Map<String, String> fieldMap = new HashMap<>();
+
+        Arrays.stream(result.split("\n"))
+                .filter(line -> line.contains(": "))
+                .forEach(line -> {
+                    String[] parts = line.split(": ", 2);
+                    if (parts.length == 2) {
+                        fieldMap.put(parts[0].trim(), parts[1].trim());
+                    }
+                });
+
+        String title = fieldMap.get("title");
+        String level = fieldMap.get("level");
+        String feedback = fieldMap.get("feedback");
+
+        if (title == null || level == null || feedback == null) {
+            throw new GlobalException(AI_MAKE_BAD_RESPONSE.getMessage(), AI_MAKE_BAD_RESPONSE.getStatus());
+        }
+
+        return RecordFeedback.builder()
+                .title(title)
+                .level(level)
+                .content(feedback)
+                .user(user)
+                .build();
     }
 }
