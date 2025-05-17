@@ -15,6 +15,8 @@
     import com.momenty.record.dto.RecordDetailResponse;
     import com.momenty.record.dto.RecordDetailUpdateRequest;
     import com.momenty.record.dto.RecordDetailsResponse;
+    import com.momenty.record.dto.RecordFeedbackRequest;
+    import com.momenty.record.dto.RecordFeedbackResponse;
     import com.momenty.record.dto.RecordOptionAddRequest;
     import com.momenty.record.dto.RecordOptionUpdateRequest;
     import com.momenty.record.dto.RecordOptionsResponse;
@@ -225,15 +227,6 @@
                     .map(ResponseEntity::ok);
         }
 
-        @GetMapping("/analysis")
-        public Mono<ResponseEntity<RecordAnalysisResponse>> analyzeRecords(
-                @RequestParam(required = true) String period,
-                @Parameter(hidden = true) @UserId Integer userId
-        ) {
-            return recordService.analyzeRecords(period, userId)
-                    .map(ResponseEntity::ok);
-        }
-
         @GetMapping("/{record_id}/trends/numbers")
         public ResponseEntity<NumberTypeRecordTrend> getNumberTypeRecordTrend(
                 @PathVariable("record_id") Integer recordId,
@@ -282,5 +275,23 @@
             RecordTrendSummary trendSummary = recordService.getTrendSummary(recordId);
             return ResponseEntity.status(HttpStatus.OK)
                     .body(RecordTrendSummaryResponse.of(trendSummary.getContent()));
+        }
+
+        @GetMapping("/feedback")
+        public ResponseEntity<RecordFeedbackResponse> getRecordFeedback(
+                @RequestBody RecordFeedbackRequest recordFeedbackRequest,
+                @Parameter(hidden = true) @UserId Integer userId,
+                @RequestParam(required = true) Integer year,
+                @RequestParam(required = true) Integer month,
+                @RequestParam(required = true) Integer day
+        ) {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(RecordFeedbackResponse.from(
+                            recordService.getRecordFeedback(
+                            recordFeedbackRequest,
+                            year, month, day,
+                            userId
+                            )
+                    ));
         }
     }

@@ -4,16 +4,21 @@ import static com.momenty.record.domain.RecordAnalysisMessage.CONTENT_AND_PROMPT
 import static com.momenty.record.domain.RecordAnalysisMessage.DATE_AND_CONTENT_SEPARATOR;
 import static com.momenty.record.domain.RecordAnalysisMessage.DATE_PATTERN;
 import static com.momenty.record.domain.RecordAnalysisMessage.PROMPT;
+import static com.momenty.record.domain.RecordAnalysisMessage.RECORDS_FEEDBACK_PROMPT;
 import static com.momenty.record.domain.RecordAnalysisMessage.RECORDS_SUMMARY_PROMPT;
 import static com.momenty.record.domain.RecordAnalysisMessage.RECORD_CONTENT;
 import static com.momenty.record.domain.RecordAnalysisMessage.TREND_PROMPT;
 import static com.momenty.record.exception.RecordExceptionMessage.*;
 
 import com.momenty.record.domain.UserRecordAvgTime;
+import com.momenty.record.dto.RecordFeedbackRequest;
 import com.momenty.record.dto.TextTypeRecordTrend;
 import com.momenty.record.repository.UserRecordAvgTimeRepository;
+import jakarta.validation.constraints.NotNull;
+import java.time.Period;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import com.momenty.global.exception.GlobalException;
 import com.momenty.record.domain.AnalysisPeriod;
@@ -63,6 +68,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
@@ -512,34 +519,6 @@ public class RecordService {
                 + fullContent;
     }
 
-
-    public Mono<RecordAnalysisResponse> analyzeRecords(String period, Integer userId) {
-        validPeriod(period);
-        User user = userRepository.getById(userId);;
-        Pair<LocalDateTime, LocalDateTime> range = getPeriodRange(period);
-
-        Map<UserRecord, List<RecordDetail>> recordDetailsMap = user.getRecords().stream()
-                .collect(Collectors.toMap(
-                        record -> record,
-                        record -> recordDetailRepository.findByRecordAndCreatedAtBetweenOrderByCreatedAtDesc(record, range.getLeft(), range.getRight())
-                ));
-
-        Map<String, List<RecordDetailDto>> titleToDtosMap = recordDetailsMap.entrySet().stream()
-                .collect(Collectors.toMap(
-                        entry -> entry.getKey().getTitle(),
-                        entry -> {
-                            UserRecord record = entry.getKey();
-                            List<RecordDetail> details = entry.getValue();
-
-                            return getRecordDetailDtos(record, details);
-                        }
-                ));
-
-        String prompt = buildPrompt(titleToDtosMap);
-        System.out.println(prompt);
-        return aiClient.requestSummary(prompt);
-    }
-
     private List<RecordDetailDto> getRecordDetailDtos(UserRecord record, List<RecordDetail> details) {
         boolean isOptionType = isOptionType(record.getMethod());
         boolean isNumberType = isNumberType(record.getMethod());
@@ -903,5 +882,83 @@ public class RecordService {
         return details.stream()
                 .map(detail -> getRecordDetailDto(detail, isOptionType, isNumberType, recordUnit))
                 .toList();
+    }
+
+    public String getRecordFeedback(
+            RecordFeedbackRequest recordFeedbackRequest,
+            Integer year, Integer month, Integer day, Integer userId
+    ) {
+        LocalDate targetDate = LocalDate.of(year, month, day);
+        LocalDateTime startDate = targetDate.minusDays(7).atStartOfDay();
+        LocalDateTime endDate = targetDate.atTime(LocalTime.MAX);
+
+        Pageable pageable = PageRequest.of(0, 1000);
+        List<RecordDetail> recordDetails = recordDetailRepository.findRecentDetails(userId, startDate, endDate, pageable);
+
+        Map<UserRecord, List<RecordDetail>> recordDetailMap = recordDetails.stream()
+                .collect(Collectors.groupingBy(RecordDetail::getRecord));
+
+        String recordSummary = requestGptForRecordSummary(separateByTopic(recordDetailMap));
+
+        pageable = PageRequest.of(0, 500);
+        List<RecordTrendSummary> otherUsersRecordSummary =
+                recordTrendSummaryRepository.findRecentSummariesFromOtherUsers(userId, pageable);
+
+        User user = userRepository.getById(userId);
+        String gender = (user.getGender() != null) ? user.getGender().name() : "정보 없음";
+        int age = (user.getBirthDate() != null) ? Period.between(user.getBirthDate(), LocalDate.now()).getYears() : 0;
+
+        String userInfo = "성별: " + gender + ", 나이: " + age + ", 닉네임: " + user.getNickname();
+
+
+        return requestGptForRecordFeedback(userInfo, recordSummary, recordFeedbackRequest.healthKit(), otherUsersRecordSummary);
+    }
+
+    private String requestGptForRecordFeedback(
+            String userInfo,
+            String recordSummary, String healthKit,
+            List<RecordTrendSummary> otherUsersRecordSummary
+    ) {
+        StringBuilder promptBuilder = new StringBuilder(RECORDS_FEEDBACK_PROMPT.getMessage());
+
+        promptBuilder.append(userInfo).append("\n\n");
+
+        promptBuilder.append("사용자 기록 요약:\n")
+                .append(recordSummary)
+                .append("\n\n");
+
+        promptBuilder.append("헬스키트 정보:\n")
+                .append(healthKit)
+                .append("\n\n");
+
+        promptBuilder.append("다른 사용자들의 동향 데이터:\n");
+        for (RecordTrendSummary summary : otherUsersRecordSummary) {
+            String topic = summary.getRecord().getTitle();
+            String content = summary.getContent();
+            promptBuilder.append("주제: ").append(topic).append("\n")
+                    .append("- ").append(content).append("\n");
+        }
+
+        promptBuilder.append("\n");
+        String prompt = promptBuilder.toString();
+
+        System.out.println("prompt 내용: " + prompt);
+
+        return Optional.ofNullable(aiClient.requestSummary(prompt).block())
+                .map(RecordAnalysisResponse::result)
+                .orElse("");
+    }
+
+    private Map<UserRecord, List<RecordDetailDto>> separateByTopic(Map<UserRecord, List<RecordDetail>> recordDetailMap) {
+        return recordDetailMap.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Entry::getKey,
+                        entry -> {
+                            UserRecord record = entry.getKey();
+                            List<RecordDetail> details = entry.getValue();
+
+                            return getRecordDetailDtos(record, details);
+                        }
+                ));
     }
 }

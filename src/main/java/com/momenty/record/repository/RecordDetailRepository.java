@@ -8,7 +8,10 @@ import com.momenty.record.domain.UserRecord;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
+import org.springframework.data.repository.query.Param;
 
 public interface RecordDetailRepository extends Repository<RecordDetail, Integer> {
 
@@ -39,4 +42,19 @@ public interface RecordDetailRepository extends Repository<RecordDetail, Integer
     );
 
     boolean existsByRecordIdAndCreatedAtBetween(Integer recordId, LocalDateTime startDate, LocalDateTime endDate);
+
+    @Query(value = """
+    SELECT rd
+    FROM RecordDetail rd
+    JOIN FETCH rd.record r
+    WHERE r.user.id = :userId
+      AND rd.createdAt BETWEEN :startDate AND :endDate
+    ORDER BY rd.createdAt DESC
+    """)
+    List<RecordDetail> findRecentDetails(
+            @Param("userId") Integer userId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate,
+            Pageable pageable
+    );
 }
