@@ -563,13 +563,17 @@ public class RecordService {
         return recordUnitRepository.getByRecord(record);
     }
 
-    public NumberTypeRecordTrend getNumberTypeRecordTrend(Integer recordId) {
+    public NumberTypeRecordTrend getNumberTypeRecordTrend(Integer recordId, Integer year, Integer month, Integer day) {
+        Pair<LocalDateTime, LocalDateTime> dateFilter = makeDateFilter(year, month, day);
+        LocalDateTime startDate = dateFilter.getLeft();
+        LocalDateTime endDate = dateFilter.getRight();
+
         UserRecord record = recordRepository.getById(recordId);
         if (!isNumberType(record.getMethod())) {
             throw  new GlobalException(METHOD_NOT_RECORD_NUMBER.getMessage(), METHOD_NOT_RECORD_NUMBER.getStatus());
         }
 
-        List<RecordDetail> thisWeekRecord = findThisWeekRecord(record);
+        List<RecordDetail> thisWeekRecord = findThisWeekRecord(record, startDate, endDate);
         Map<DayOfWeek, Long> countsByDay = getCountsByDayOfWeek(thisWeekRecord);
         int totalCount = thisWeekRecord.size();
         double averageCount = totalCount / 7.0;
@@ -597,12 +601,8 @@ public class RecordService {
                 .orElse(NOT_MAKE_SUMMARY);
     }
 
-    private List<RecordDetail> findThisWeekRecord(UserRecord record) {
-        return recordDetailRepository.findByRecordAndCreatedAtBetweenOrderByCreatedAtDesc(
-                record,
-                LocalDateTime.now().minusDays(6).withHour(0).withMinute(0).withSecond(0).withNano(0),
-                LocalDateTime.now().withHour(23).withMinute(59).withSecond(59).withNano(999999999)
-        );
+    private List<RecordDetail> findThisWeekRecord(UserRecord record, LocalDateTime startDate, LocalDateTime endDate) {
+        return recordDetailRepository.findByRecordAndCreatedAtBetweenOrderByCreatedAtDesc(record, startDate, endDate);
     }
 
     private Map<DayOfWeek, Long> getCountsByDayOfWeek(List<RecordDetail> records) {
@@ -645,14 +645,18 @@ public class RecordService {
     }
 
     @Transactional
-    public RecordTrendSummary getTrendSummary(Integer recordId) {
+    public RecordTrendSummary getTrendSummary(Integer recordId, Integer year, Integer month, Integer day) {
+        Pair<LocalDateTime, LocalDateTime> dateFilter = makeDateFilter(year, month, day);
+        LocalDateTime startDate = dateFilter.getLeft();
+        LocalDateTime endDate = dateFilter.getRight();
+
         UserRecord record = recordRepository.getById(recordId);
         Optional<RecordTrendSummary> trendSummary = findTodayTrendSummary(record);
         if (trendSummary.isPresent()) {
             return trendSummary.get();
         }
 
-        List<RecordDetail> thisWeekRecord = findThisWeekRecord(record);
+        List<RecordDetail> thisWeekRecord = findThisWeekRecord(record, startDate, endDate);
         String summary = generateTrendSummary(record, thisWeekRecord);
 
         RecordTrendSummary recordTrendSummary = RecordTrendSummary.builder()
@@ -669,13 +673,17 @@ public class RecordService {
         return recordTrendSummaryRepository.findByRecordAndCreatedAtBetween(record, startOfDay, endOfDay);
     }
 
-    public OXTypeRecordTrend getOXTypeRecordTrend(Integer recordId) {
+    public OXTypeRecordTrend getOXTypeRecordTrend(Integer recordId, Integer year, Integer month, Integer day) {
+        Pair<LocalDateTime, LocalDateTime> dateFilter = makeDateFilter(year, month, day);
+        LocalDateTime startDate = dateFilter.getLeft();
+        LocalDateTime endDate = dateFilter.getRight();
+
         UserRecord record = recordRepository.getById(recordId);
         if (!isOXType(record.getMethod())) {
             throw new GlobalException(METHOD_NOT_RECORD_OX.getMessage(), METHOD_NOT_RECORD_OX.getStatus());
         }
 
-        List<RecordDetail> thisWeekRecord = findThisWeekRecord(record);
+        List<RecordDetail> thisWeekRecord = findThisWeekRecord(record, startDate, endDate);
 
         Map<DayOfWeek, OXCount> countsByDay = getOXCountsByDayOfWeek(thisWeekRecord);
         OXCount totalCounts = calculateTotalCounts(countsByDay);
@@ -725,13 +733,17 @@ public class RecordService {
         return new OXCount(totalO, totalX);
     }
 
-    public OptionTypeRecordTrend getOptionTypeRecordTrend(Integer recordId) {
+    public OptionTypeRecordTrend getOptionTypeRecordTrend(Integer recordId, Integer year, Integer month, Integer day) {
+        Pair<LocalDateTime, LocalDateTime> dateFilter = makeDateFilter(year, month, day);
+        LocalDateTime startDate = dateFilter.getLeft();
+        LocalDateTime endDate = dateFilter.getRight();
+
         UserRecord record = recordRepository.getById(recordId);
         if (!isOptionType(record.getMethod())) {
             throw new GlobalException(METHOD_NOT_RECORD_OPTION.getMessage(), METHOD_NOT_RECORD_OPTION.getStatus());
         }
 
-        List<RecordDetail> thisWeekRecord = findThisWeekRecord(record);
+        List<RecordDetail> thisWeekRecord = findThisWeekRecord(record, startDate, endDate);
 
         Map<DayOfWeek, List<RecordDetail>> recordsByDay = thisWeekRecord.stream()
                 .collect(Collectors.groupingBy(
@@ -789,13 +801,17 @@ public class RecordService {
                 .orElse(new OptionDetail(null, "None"));
     }
 
-    public TextTypeRecordTrend getTextTypeRecordTrend(Integer recordId) {
+    public TextTypeRecordTrend getTextTypeRecordTrend(Integer recordId, Integer year, Integer month, Integer day) {
+        Pair<LocalDateTime, LocalDateTime> dateFilter = makeDateFilter(year, month, day);
+        LocalDateTime startDate = dateFilter.getLeft();
+        LocalDateTime endDate = dateFilter.getRight();
+
         UserRecord record = recordRepository.getById(recordId);
         if (!isTextType(record.getMethod())) {
             throw new GlobalException(METHOD_NOT_RECORD_TEXT.getMessage(), METHOD_NOT_RECORD_TEXT.getStatus());
         }
 
-        List<RecordDetail> thisWeekRecord = findThisWeekRecord(record);
+        List<RecordDetail> thisWeekRecord = findThisWeekRecord(record, startDate, endDate);
         Map<DayOfWeek, Long> countsByDay = getCountsByDayOfWeek(thisWeekRecord);
         int totalCount = thisWeekRecord.size();
         double averageCount = totalCount / 7.0;

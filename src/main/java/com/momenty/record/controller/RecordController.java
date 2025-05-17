@@ -230,9 +230,12 @@
         @GetMapping("/{record_id}/trends/numbers")
         public ResponseEntity<NumberTypeRecordTrend> getNumberTypeRecordTrend(
                 @PathVariable("record_id") Integer recordId,
-                @Parameter(hidden = true) @UserId Integer userId
+                @Parameter(hidden = true) @UserId Integer userId,
+                @RequestParam(required = true) Integer year,
+                @RequestParam(required = true) Integer month,
+                @RequestParam(required = true) Integer day
         ) {
-            NumberTypeRecordTrend trend = recordService.getNumberTypeRecordTrend(recordId);
+            NumberTypeRecordTrend trend = recordService.getNumberTypeRecordTrend(recordId, year, month, day);
             return ResponseEntity.status(HttpStatus.OK)
                     .body(trend);
         }
@@ -240,9 +243,12 @@
         @GetMapping("/{record_id}/trends/ox")
         public ResponseEntity<OXTypeRecordTrend> getOXTypeRecordTrend(
                 @PathVariable("record_id") Integer recordId,
-                @Parameter(hidden = true) @UserId Integer userId
+                @Parameter(hidden = true) @UserId Integer userId,
+                @RequestParam(required = true) Integer year,
+                @RequestParam(required = true) Integer month,
+                @RequestParam(required = true) Integer day
         ) {
-            OXTypeRecordTrend trend = recordService.getOXTypeRecordTrend(recordId);
+            OXTypeRecordTrend trend = recordService.getOXTypeRecordTrend(recordId, year, month, day);
             return ResponseEntity.status(HttpStatus.OK)
                     .body(trend);
         }
@@ -250,9 +256,12 @@
         @GetMapping("/{record_id}/trends/options")
         public ResponseEntity<OptionTypeRecordTrend> getOptionTypeRecordTrend(
                 @PathVariable("record_id") Integer recordId,
-                @Parameter(hidden = true) @UserId Integer userId
+                @Parameter(hidden = true) @UserId Integer userId,
+                @RequestParam(required = true) Integer year,
+                @RequestParam(required = true) Integer month,
+                @RequestParam(required = true) Integer day
         ) {
-            OptionTypeRecordTrend trend = recordService.getOptionTypeRecordTrend(recordId);
+            OptionTypeRecordTrend trend = recordService.getOptionTypeRecordTrend(recordId, year, month, day);
             return ResponseEntity.status(HttpStatus.OK)
                     .body(trend);
         }
@@ -260,9 +269,12 @@
         @GetMapping("/{record_id}/trends/texts")
         public ResponseEntity<TextTypeRecordTrend> getTextTypeRecordTrend(
                 @PathVariable("record_id") Integer recordId,
-                @Parameter(hidden = true) @UserId Integer userId
+                @Parameter(hidden = true) @UserId Integer userId,
+                @RequestParam(required = true) Integer year,
+                @RequestParam(required = true) Integer month,
+                @RequestParam(required = true) Integer day
         ) {
-            TextTypeRecordTrend trend = recordService.getTextTypeRecordTrend(recordId);
+            TextTypeRecordTrend trend = recordService.getTextTypeRecordTrend(recordId, year, month, day);
             return ResponseEntity.status(HttpStatus.OK)
                     .body(trend);
         }
@@ -270,9 +282,12 @@
         @GetMapping("/{record_id}/trends/summary")
         public ResponseEntity<RecordTrendSummaryResponse> getTrendSummary(
                 @PathVariable("record_id") Integer recordId,
-                @Parameter(hidden = true) @UserId Integer userId
+                @Parameter(hidden = true) @UserId Integer userId,
+                @RequestParam(required = true) Integer year,
+                @RequestParam(required = true) Integer month,
+                @RequestParam(required = true) Integer day
         ) {
-            RecordTrendSummary trendSummary = recordService.getTrendSummary(recordId);
+            RecordTrendSummary trendSummary = recordService.getTrendSummary(recordId, year, month, day);
             return ResponseEntity.status(HttpStatus.OK)
                     .body(RecordTrendSummaryResponse.of(trendSummary.getContent()));
         }
