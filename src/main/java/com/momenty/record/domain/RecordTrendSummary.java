@@ -2,6 +2,7 @@ package com.momenty.record.domain;
 
 import static lombok.AccessLevel.PROTECTED;
 
+import com.momenty.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -37,6 +38,10 @@ public class RecordTrendSummary {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "record_id")
     private UserRecord record;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @CreatedDate
     @Column(name = "created_at", columnDefinition = "TIMESTAMP", nullable = false)
