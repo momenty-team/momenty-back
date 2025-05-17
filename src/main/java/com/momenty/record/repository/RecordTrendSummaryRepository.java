@@ -12,7 +12,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface RecordTrendSummaryRepository extends Repository<RecordTrendSummary, Integer> {
 
-    Optional<RecordTrendSummary> findByRecordAndCreatedAtBetween(
+    Optional<RecordTrendSummary> findFirstByRecordAndCreatedAtBetweenOrderByCreatedAtDesc(
             UserRecord record,
             LocalDateTime startOfDay,
             LocalDateTime endOfDay
