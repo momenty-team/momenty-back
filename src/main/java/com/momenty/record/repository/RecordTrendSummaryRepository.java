@@ -29,4 +29,6 @@ public interface RecordTrendSummaryRepository extends Repository<RecordTrendSumm
             @Param("userId") Integer userId,
             Pageable pageable
     );
+
+    void deleteByRecordAndCreatedAtBetween(UserRecord record, LocalDateTime startDate, LocalDateTime endDate);
 }
