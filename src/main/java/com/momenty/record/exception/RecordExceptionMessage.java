@@ -19,6 +19,7 @@ public enum RecordExceptionMessage {
     TOO_MANY_PROMPT("AI 요청이 너무 많습니다. 잠시 후 다시 시도해주세요.", HttpStatus.TOO_MANY_REQUESTS),
     BAD_PERIOD("지원하지 않는 기간입니다.", HttpStatus.BAD_REQUEST),
     BAD_OPTION_ID("잘못된 option id 요청입니다.", HttpStatus.BAD_REQUEST),
+    AI_MAKE_BAD_RESPONSE("잘못된 형식의 ai 응답이 생성됐습니다.", HttpStatus.CONFLICT),
     ;
 
     private final String message;

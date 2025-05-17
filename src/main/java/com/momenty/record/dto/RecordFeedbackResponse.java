@@ -2,6 +2,7 @@ package com.momenty.record.dto;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.momenty.record.domain.RecordFeedback;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @JsonNaming(SnakeCaseStrategy.class)
@@ -15,22 +16,11 @@ public record RecordFeedbackResponse(
 
 ) {
 
-    public static RecordFeedbackResponse from(String result) {
-        String[] lines = result.split("\n");
-        String title = "";
-        String level = "";
-        String feedback = "";
-
-        for (String line : lines) {
-            if (line.startsWith("title: ")) {
-                title = line.substring(7).trim();
-            } else if (line.startsWith("level: ")) {
-                level = line.substring(7).trim();
-            } else if (line.startsWith("feedback: ")) {
-                feedback = line.substring(10).trim();
-            }
-        }
-
-        return new RecordFeedbackResponse(title, level, feedback);
+    public static RecordFeedbackResponse from(RecordFeedback recordFeedback) {
+        return new RecordFeedbackResponse(
+                recordFeedback.getTitle(),
+                recordFeedback.getLevel(),
+                recordFeedback.getContent()
+        );
     }
 }
