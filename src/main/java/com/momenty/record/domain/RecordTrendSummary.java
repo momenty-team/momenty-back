@@ -54,9 +54,11 @@ public class RecordTrendSummary {
     @Builder
     private RecordTrendSummary(
             String content,
-            UserRecord record
+            UserRecord record,
+            User user
     ) {
         this.content = content;
         this.record = record;
+        this.user = user;
     }
 }

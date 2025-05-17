@@ -203,6 +203,14 @@ public class RecordService {
 
         Integer createdHour = recordDetail.getCreatedAt().getHour();
         updateAverageHour(record, createdHour);
+        removeRecordSummary(record);
+    }
+
+    private void removeRecordSummary(UserRecord record) {
+        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+        LocalDateTime endOfDay = LocalDate.now().atTime(LocalTime.MAX);
+
+        recordTrendSummaryRepository.deleteByRecordAndCreatedAtBetween(record, startOfDay, endOfDay);
     }
 
     public void updateAverageHour(UserRecord record, Integer newHour) {
@@ -353,6 +361,7 @@ public class RecordService {
         }
 
         record.updateUnit(recordUnitAddRequest.unit());
+        removeRecordSummary(record);
     }
 
     @Transactional
@@ -368,12 +377,16 @@ public class RecordService {
 
         RecordOption recordOption = getRecordOption(optionId);
         recordOption.addOption(recordOptionUpdateRequest.option());
+
+        removeRecordSummary(record);
     }
 
     @Transactional
     public void updateRecord(RecordUpdateRequest recordUpdateRequest, Integer recordId) {
         UserRecord record = recordRepository.getById(recordId);
         record.update(recordUpdateRequest.title(), recordUpdateRequest.isPublic());
+
+        removeRecordSummary(record);
     }
 
     @Transactional
@@ -409,6 +422,8 @@ public class RecordService {
 
             recordDetailOptionRepository.saveAll(newOptions);
         }
+
+        removeRecordSummary(record);
     }
 
     private List<Integer> parseOptionIds(String content) {
@@ -651,7 +666,7 @@ public class RecordService {
         LocalDateTime endDate = dateFilter.getRight();
 
         UserRecord record = recordRepository.getById(recordId);
-        Optional<RecordTrendSummary> trendSummary = findTodayTrendSummary(record);
+        Optional<RecordTrendSummary> trendSummary = findTodayTrendSummary(record, startDate, endDate);
         if (trendSummary.isPresent()) {
             return trendSummary.get();
         }
@@ -662,15 +677,15 @@ public class RecordService {
         RecordTrendSummary recordTrendSummary = RecordTrendSummary.builder()
                 .record(record)
                 .content(summary)
+                .user(record.getUser())
                 .build();
         return recordTrendSummaryRepository.save(recordTrendSummary);
     }
 
-    private Optional<RecordTrendSummary> findTodayTrendSummary(UserRecord record) {
-        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
-        LocalDateTime endOfDay = LocalDate.now().atTime(LocalTime.MAX);
-
-        return recordTrendSummaryRepository.findByRecordAndCreatedAtBetween(record, startOfDay, endOfDay);
+    private Optional<RecordTrendSummary> findTodayTrendSummary(
+            UserRecord record, LocalDateTime startDate, LocalDateTime endDate
+    ) {
+        return recordTrendSummaryRepository.findByRecordAndCreatedAtBetween(record, startDate, endDate);
     }
 
     public OXTypeRecordTrend getOXTypeRecordTrend(Integer recordId, Integer year, Integer month, Integer day) {
