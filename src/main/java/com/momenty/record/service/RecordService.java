@@ -579,9 +579,9 @@ public class RecordService {
     }
 
     public NumberTypeRecordTrend getNumberTypeRecordTrend(Integer recordId, Integer year, Integer month, Integer day) {
-        Pair<LocalDateTime, LocalDateTime> dateFilter = makeDateFilter(year, month, day);
-        LocalDateTime startDate = dateFilter.getLeft();
-        LocalDateTime endDate = dateFilter.getRight();
+        LocalDate targetDate = LocalDate.of(year, month, day);
+        LocalDateTime endDate = targetDate.atTime(LocalTime.MAX);
+        LocalDateTime startDate = targetDate.minusDays(6).atStartOfDay();
 
         UserRecord record = recordRepository.getById(recordId);
         if (!isNumberType(record.getMethod())) {
@@ -634,7 +634,7 @@ public class RecordService {
         StringBuilder prompt = writeRecordDetailPrompt(record, recordDetailDtos, 70);
 
         return TREND_PROMPT.getMessage()
-                + "\n\n" + RECORD_CONTENT.getMessage() + "\n"
+                + RECORD_CONTENT.getMessage() + "\n"
                 + prompt;
     }
 
@@ -661,12 +661,13 @@ public class RecordService {
 
     @Transactional
     public RecordTrendSummary getTrendSummary(Integer recordId, Integer year, Integer month, Integer day) {
-        Pair<LocalDateTime, LocalDateTime> dateFilter = makeDateFilter(year, month, day);
-        LocalDateTime startDate = dateFilter.getLeft();
-        LocalDateTime endDate = dateFilter.getRight();
+        LocalDate targetDate = LocalDate.of(year, month, day);
+        LocalDateTime endDate = targetDate.atTime(LocalTime.MAX);
+        LocalDateTime startDate = targetDate.minusDays(6).atStartOfDay();
 
         UserRecord record = recordRepository.getById(recordId);
-        Optional<RecordTrendSummary> trendSummary = findTodayTrendSummary(record, startDate, endDate);
+        Optional<RecordTrendSummary> trendSummary =
+                findTodayTrendSummary(record, targetDate.atStartOfDay(), targetDate.atTime(LocalTime.MAX));
         if (trendSummary.isPresent()) {
             return trendSummary.get();
         }
@@ -685,13 +686,13 @@ public class RecordService {
     private Optional<RecordTrendSummary> findTodayTrendSummary(
             UserRecord record, LocalDateTime startDate, LocalDateTime endDate
     ) {
-        return recordTrendSummaryRepository.findByRecordAndCreatedAtBetween(record, startDate, endDate);
+        return recordTrendSummaryRepository.findFirstByRecordAndCreatedAtBetweenOrderByCreatedAtDesc(record, startDate, endDate);
     }
 
     public OXTypeRecordTrend getOXTypeRecordTrend(Integer recordId, Integer year, Integer month, Integer day) {
-        Pair<LocalDateTime, LocalDateTime> dateFilter = makeDateFilter(year, month, day);
-        LocalDateTime startDate = dateFilter.getLeft();
-        LocalDateTime endDate = dateFilter.getRight();
+        LocalDate targetDate = LocalDate.of(year, month, day);
+        LocalDateTime endDate = targetDate.atTime(LocalTime.MAX);
+        LocalDateTime startDate = targetDate.minusDays(6).atStartOfDay();
 
         UserRecord record = recordRepository.getById(recordId);
         if (!isOXType(record.getMethod())) {
@@ -749,9 +750,9 @@ public class RecordService {
     }
 
     public OptionTypeRecordTrend getOptionTypeRecordTrend(Integer recordId, Integer year, Integer month, Integer day) {
-        Pair<LocalDateTime, LocalDateTime> dateFilter = makeDateFilter(year, month, day);
-        LocalDateTime startDate = dateFilter.getLeft();
-        LocalDateTime endDate = dateFilter.getRight();
+        LocalDate targetDate = LocalDate.of(year, month, day);
+        LocalDateTime endDate = targetDate.atTime(LocalTime.MAX);
+        LocalDateTime startDate = targetDate.minusDays(6).atStartOfDay();
 
         UserRecord record = recordRepository.getById(recordId);
         if (!isOptionType(record.getMethod())) {
@@ -817,9 +818,9 @@ public class RecordService {
     }
 
     public TextTypeRecordTrend getTextTypeRecordTrend(Integer recordId, Integer year, Integer month, Integer day) {
-        Pair<LocalDateTime, LocalDateTime> dateFilter = makeDateFilter(year, month, day);
-        LocalDateTime startDate = dateFilter.getLeft();
-        LocalDateTime endDate = dateFilter.getRight();
+        LocalDate targetDate = LocalDate.of(year, month, day);
+        LocalDateTime endDate = targetDate.atTime(LocalTime.MAX);
+        LocalDateTime startDate = targetDate.minusDays(6).atStartOfDay();
 
         UserRecord record = recordRepository.getById(recordId);
         if (!isTextType(record.getMethod())) {
