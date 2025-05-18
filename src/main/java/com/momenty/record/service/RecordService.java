@@ -723,22 +723,36 @@ public class RecordService {
 
         List<RecordDetail> thisWeekRecord = findThisWeekRecord(record, startDate, endDate);
 
-        Map<DayOfWeek, OXCount> countsByDay = getOXCountsByDayOfWeek(thisWeekRecord);
-        OXCount totalCounts = calculateTotalCounts(countsByDay);
-        double averageCount = (totalCounts.oCount() + totalCounts.xCount()) / 7.0;
+        Map<LocalDate, OXTypeRecordTrend.OXCount> countsByDate = thisWeekRecord.stream()
+                .collect(Collectors.groupingBy(
+                        recordDetail -> recordDetail.getCreatedAt().toLocalDate(),
+                        Collectors.collectingAndThen(
+                                Collectors.toList(),
+                                details -> {
+                                    int oCount = (int) details.stream().filter(d -> "O".equals(d.getContent())).count();
+                                    int xCount = (int) details.stream().filter(d -> "X".equals(d.getContent())).count();
+                                    return new OXTypeRecordTrend.OXCount(oCount, xCount);
+                                }
+                        )
+                ));
+
+        List<OXTypeRecordTrend.Data> data = startDate.toLocalDate().datesUntil(endDate.toLocalDate().plusDays(1))
+                .map(date -> {
+                    String weekDay = date.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREAN);
+                    OXTypeRecordTrend.OXCount oxCount = countsByDate.getOrDefault(date, new OXTypeRecordTrend.OXCount(0, 0));
+                    return new OXTypeRecordTrend.Data(date, weekDay, oxCount);
+                })
+                .toList();
+
+        int totalOCount = data.stream().mapToInt(d -> d.oxCount().oCount()).sum();
+        int totalXCount = data.stream().mapToInt(d -> d.oxCount().xCount()).sum();
+        OXTypeRecordTrend.OXCount totalCounts = new OXTypeRecordTrend.OXCount(totalOCount, totalXCount);
+
+        int totalCount = totalOCount + totalXCount;
+        double averageCount = totalCount / 7.0;
         int roundedAverage = (int) Math.round(averageCount);
 
-        return OXTypeRecordTrend.of(
-                countsByDay.getOrDefault(DayOfWeek.MONDAY, new OXCount(0, 0)),
-                countsByDay.getOrDefault(DayOfWeek.TUESDAY, new OXCount(0, 0)),
-                countsByDay.getOrDefault(DayOfWeek.WEDNESDAY, new OXCount(0, 0)),
-                countsByDay.getOrDefault(DayOfWeek.THURSDAY, new OXCount(0, 0)),
-                countsByDay.getOrDefault(DayOfWeek.FRIDAY, new OXCount(0, 0)),
-                countsByDay.getOrDefault(DayOfWeek.SATURDAY, new OXCount(0, 0)),
-                countsByDay.getOrDefault(DayOfWeek.SUNDAY, new OXCount(0, 0)),
-                totalCounts,
-                roundedAverage
-        );
+        return OXTypeRecordTrend.of(startDate.toLocalDate(), endDate.toLocalDate(), data, totalCounts, roundedAverage);
     }
 
     private Map<DayOfWeek, OXCount> getOXCountsByDayOfWeek(List<RecordDetail> records) {
