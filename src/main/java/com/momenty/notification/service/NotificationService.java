@@ -202,4 +202,8 @@ public class NotificationService {
 
         return userNotificationSetting.isEmpty();
     }
+
+    public List<Notification> getNotifications() {
+        return notificationRepository.findAll();
+    }
 }
