@@ -295,7 +295,7 @@
                     .body(RecordTrendSummaryResponse.of(trendSummary.getContent()));
         }
 
-        @GetMapping("/feedback")
+        @PostMapping("/feedback")
         public ResponseEntity<RecordFeedbackResponse> getRecordFeedback(
                 @RequestBody RecordFeedbackRequest recordFeedbackRequest,
                 @Parameter(hidden = true) @UserId Integer userId,
