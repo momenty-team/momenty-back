@@ -178,12 +178,22 @@ public class RecordService {
     }
 
     @Transactional
-    public void addRecordDetail(Integer recordId, RecordDetailAddRequest recordDetailAddRequest) {
+    public void addRecordDetail(
+            Integer recordId, RecordDetailAddRequest recordDetailAddRequest, Integer year, Integer month, Integer day
+    ) {
+        LocalDateTime createdAt = LocalDateTime.of(
+                year, month, day,
+                LocalTime.now().getHour(),
+                LocalTime.now().getMinute(),
+                LocalTime.now().getSecond()
+        );
+
         UserRecord record = recordRepository.getById(recordId);
         RecordDetail recordDetail = RecordDetail.builder()
                 .content(recordDetailAddRequest.content())
                 .record(record)
                 .isPublic(recordDetailAddRequest.isPublic())
+                .createdAt(createdAt)
                 .build();
         recordDetailRepository.save(recordDetail);
 
