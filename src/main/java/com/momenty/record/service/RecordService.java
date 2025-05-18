@@ -17,8 +17,10 @@ import com.momenty.record.dto.TextTypeRecordTrend;
 import com.momenty.record.repository.RecordFeedbackRepository;
 import com.momenty.record.repository.UserRecordAvgTimeRepository;
 import java.time.Period;
+import java.time.format.TextStyle;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import com.momenty.global.exception.GlobalException;
@@ -599,19 +601,29 @@ public class RecordService {
         }
 
         List<RecordDetail> thisWeekRecord = findThisWeekRecord(record, startDate, endDate);
-        Map<DayOfWeek, Long> countsByDay = getCountsByDayOfWeek(thisWeekRecord);
+
+        Map<LocalDate, Long> countsByDate = thisWeekRecord.stream()
+                .collect(Collectors.groupingBy(
+                        recordDetail -> recordDetail.getCreatedAt().toLocalDate(),
+                        Collectors.counting()
+                ));
+
+        List<NumberTypeRecordTrend.Data> data = startDate.toLocalDate().datesUntil(endDate.toLocalDate().plusDays(1))
+                .map(date -> {
+                    String weekDay = date.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREAN);
+                    int value = countsByDate.getOrDefault(date, 0L).intValue();
+                    return new NumberTypeRecordTrend.Data(date, weekDay, value);
+                })
+                .toList();
+
         int totalCount = thisWeekRecord.size();
         double averageCount = totalCount / 7.0;
         int roundedAverage = (int) Math.round(averageCount);
 
         return NumberTypeRecordTrend.of(
-                countsByDay.getOrDefault(DayOfWeek.MONDAY, 0L).intValue(),
-                countsByDay.getOrDefault(DayOfWeek.TUESDAY, 0L).intValue(),
-                countsByDay.getOrDefault(DayOfWeek.WEDNESDAY, 0L).intValue(),
-                countsByDay.getOrDefault(DayOfWeek.THURSDAY, 0L).intValue(),
-                countsByDay.getOrDefault(DayOfWeek.FRIDAY, 0L).intValue(),
-                countsByDay.getOrDefault(DayOfWeek.SATURDAY, 0L).intValue(),
-                countsByDay.getOrDefault(DayOfWeek.SUNDAY, 0L).intValue(),
+                startDate.toLocalDate(),
+                endDate.toLocalDate(),
+                data,
                 totalCount,
                 roundedAverage
         );

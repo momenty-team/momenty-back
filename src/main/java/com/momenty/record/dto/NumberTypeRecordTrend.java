@@ -3,11 +3,19 @@ package com.momenty.record.dto;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.LocalDate;
+import java.util.List;
 
 @JsonNaming(SnakeCaseStrategy.class)
 public record NumberTypeRecordTrend(
-        @Schema(description = "요일별 작성 횟수", required = true)
-        DayCounts dayCounts,
+        @Schema(description = "시작 날짜", example = "2025-04-01", required = true)
+        LocalDate startDate,
+
+        @Schema(description = "종료 날짜", example = "2025-04-20", required = true)
+        LocalDate endDate,
+
+        @Schema(description = "데이터 리스트", required = true)
+        List<Data> data,
 
         @Schema(description = "총 작성 횟수", example = "27", required = true)
         Integer totalCount,
@@ -17,36 +25,24 @@ public record NumberTypeRecordTrend(
 ) {
 
     @JsonNaming(SnakeCaseStrategy.class)
-    public record DayCounts(
-            @Schema(description = "월요일에 기록한 횟수", example = "1", required = true)
-            Integer monday,
+    public record Data(
+            @Schema(description = "날짜", example = "2025-04-01", required = true)
+            LocalDate date,
 
-            @Schema(description = "화요일에 기록한 횟수", example = "1", required = true)
-            Integer tuesday,
+            @Schema(description = "요일", example = "월", required = true)
+            String week,
 
-            @Schema(description = "수요일에 기록한 횟수", example = "1", required = true)
-            Integer wednesday,
-
-            @Schema(description = "목요일에 기록한 횟수", example = "1", required = true)
-            Integer thursday,
-
-            @Schema(description = "금요일에 기록한 횟수", example = "1", required = true)
-            Integer friday,
-
-            @Schema(description = "토요일에 기록한 횟수", example = "1", required = true)
-            Integer saturday,
-
-            @Schema(description = "일요일에 기록한 횟수", example = "1", required = true)
-            Integer sunday
+            @Schema(description = "작성 횟수", example = "10", required = true)
+            Integer value
     ) {}
 
     public static NumberTypeRecordTrend of(
-            Integer monday, Integer tuesday, Integer wednesday,
-            Integer thursday, Integer friday, Integer saturday, Integer sunday,
+            LocalDate startDate,
+            LocalDate endDate,
+            List<Data> data,
             Integer totalCount,
             Integer averageCount
     ) {
-        DayCounts dayCounts = new DayCounts(monday, tuesday, wednesday, thursday, friday, saturday, sunday);
-        return new NumberTypeRecordTrend(dayCounts, totalCount, averageCount);
+        return new NumberTypeRecordTrend(startDate, endDate, data, totalCount, averageCount);
     }
 }
