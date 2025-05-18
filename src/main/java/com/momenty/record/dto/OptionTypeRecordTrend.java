@@ -3,12 +3,19 @@ package com.momenty.record.dto;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.LocalDate;
 import java.util.List;
 
 @JsonNaming(SnakeCaseStrategy.class)
 public record OptionTypeRecordTrend(
-        @Schema(description = "요일별 기록 데이터", required = true)
-        DayCounts dayCounts,
+        @Schema(description = "시작 날짜", required = true)
+        LocalDate startDate,
+
+        @Schema(description = "종료 날짜", required = true)
+        LocalDate endDate,
+
+        @Schema(description = "옵션 데이터 리스트", required = true)
+        List<Data> data,
 
         @Schema(description = "총 기록 횟수", example = "27", required = true)
         Integer totalCount,
@@ -18,36 +25,18 @@ public record OptionTypeRecordTrend(
 ) {
 
     @JsonNaming(SnakeCaseStrategy.class)
-    public record DayCounts(
-            @Schema(description = "월요일 기록 데이터", required = true)
-            DayRecord monday,
+    public record Data(
+            @Schema(description = "날짜", example = "2025-04-01", required = true)
+            LocalDate date,
 
-            @Schema(description = "화요일 기록 데이터", required = true)
-            DayRecord tuesday,
+            @Schema(description = "요일", example = "월", required = true)
+            String week,
 
-            @Schema(description = "수요일 기록 데이터", required = true)
-            DayRecord wednesday,
+            @Schema(description = "해당 날짜의 옵션 목록", required = true)
+            List<OptionDetail> options,
 
-            @Schema(description = "목요일 기록 데이터", required = true)
-            DayRecord thursday,
-
-            @Schema(description = "금요일 기록 데이터", required = true)
-            DayRecord friday,
-
-            @Schema(description = "토요일 기록 데이터", required = true)
-            DayRecord saturday,
-
-            @Schema(description = "일요일 기록 데이터", required = true)
-            DayRecord sunday
-    ) {}
-
-    @JsonNaming(SnakeCaseStrategy.class)
-    public record DayRecord(
-            @Schema(description = "해당 요일의 기록 횟수", example = "3", required = true)
-            Integer count,
-
-            @Schema(description = "해당 요일의 옵션 목록", required = true)
-            List<OptionDetail> options
+            @Schema(description = "해당 날짜의 기록 횟수", example = "3", required = true)
+            Integer count
     ) {}
 
     @JsonNaming(SnakeCaseStrategy.class)
@@ -60,12 +49,9 @@ public record OptionTypeRecordTrend(
     ) {}
 
     public static OptionTypeRecordTrend of(
-            DayRecord monday, DayRecord tuesday, DayRecord wednesday,
-            DayRecord thursday, DayRecord friday, DayRecord saturday, DayRecord sunday,
-            Integer totalCount,
-            OptionDetail mostFrequentOption
+            LocalDate startDate, LocalDate endDate,
+            List<Data> data, Integer totalCount, OptionDetail mostFrequentOption
     ) {
-        DayCounts dayCounts = new DayCounts(monday, tuesday, wednesday, thursday, friday, saturday, sunday);
-        return new OptionTypeRecordTrend(dayCounts, totalCount, mostFrequentOption);
+        return new OptionTypeRecordTrend(startDate, endDate, data, totalCount, mostFrequentOption);
     }
 }
