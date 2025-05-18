@@ -5,6 +5,7 @@ import static com.momenty.notification.exception.NotificationExceptionMessage.NO
 import com.momenty.global.exception.GlobalException;
 import com.momenty.notification.domain.Notification;
 import com.momenty.notification.domain.NotificationType;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
@@ -46,4 +47,6 @@ public interface NotificationRepository extends Repository<Notification, Integer
                         )
                 );
     }
+
+    List<Notification> findAll();
 }

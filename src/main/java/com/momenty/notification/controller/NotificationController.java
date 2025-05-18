@@ -1,9 +1,11 @@
 package com.momenty.notification.controller;
 
 import com.momenty.global.annotation.UserId;
+import com.momenty.notification.domain.Notification;
 import com.momenty.notification.domain.UserNotificationHistory;
 import com.momenty.notification.domain.UserNotificationSetting;
 import com.momenty.notification.dto.NotificationTokenRequest;
+import com.momenty.notification.dto.NotificationsResponse;
 import com.momenty.notification.dto.UpdateUserNotificationSettingRequest;
 import com.momenty.notification.dto.UserNotificationHistoryResponse;
 import com.momenty.notification.dto.UserNotificationHistoryUpdateRequest;
@@ -27,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController
-@RequestMapping("/notification")
+@RequestMapping("/notifications")
 @RequiredArgsConstructor
 public class NotificationController {
 
@@ -90,5 +92,14 @@ public class NotificationController {
     ) {
         notificationService.updateUserNotificationSetting(updateUserNotificationSettingRequest, userId);
         return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @GetMapping
+    public ResponseEntity<NotificationsResponse> getNotifications(
+            @Parameter(hidden = true) @UserId Integer userId
+    ) {
+        List<Notification> notifications = notificationService.getNotifications();
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(NotificationsResponse.of(notifications));
     }
 }
