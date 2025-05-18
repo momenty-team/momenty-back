@@ -599,6 +599,7 @@ public class RecordService {
             throw  new GlobalException(METHOD_NOT_RECORD_NUMBER.getMessage(), METHOD_NOT_RECORD_NUMBER.getStatus());
         }
 
+        String unit = recordUnitRepository.getByRecord(record).getUnit();
         List<RecordDetail> thisWeekRecord = findThisWeekRecord(record, startDate, endDate);
 
         Map<LocalDate, Long> countsByDate = thisWeekRecord.stream()
@@ -610,8 +611,9 @@ public class RecordService {
         List<NumberTypeRecordTrend.Data> data = startDate.toLocalDate().datesUntil(endDate.toLocalDate().plusDays(1))
                 .map(date -> {
                     String weekDay = date.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREAN);
-                    int value = countsByDate.getOrDefault(date, 0L).intValue();
-                    return new NumberTypeRecordTrend.Data(date, weekDay, value);
+                    Long count = countsByDate.getOrDefault(date, 0L);
+                    String valueWithUnit = count + unit;
+                    return new NumberTypeRecordTrend.Data(date, weekDay, valueWithUnit);
                 })
                 .toList();
 
