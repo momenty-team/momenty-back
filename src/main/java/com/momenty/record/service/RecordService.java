@@ -37,7 +37,6 @@ import com.momenty.record.dto.NumberTypeRecordTrend;
 import com.momenty.record.dto.OXTypeRecordTrend;
 import com.momenty.record.dto.OXTypeRecordTrend.OXCount;
 import com.momenty.record.dto.OptionTypeRecordTrend;
-import com.momenty.record.dto.OptionTypeRecordTrend.DayRecord;
 import com.momenty.record.dto.OptionTypeRecordTrend.OptionDetail;
 import com.momenty.record.dto.RecordAddRequest;
 import com.momenty.record.dto.RecordAnalysisResponse;
@@ -797,60 +796,62 @@ public class RecordService {
 
         List<RecordDetail> thisWeekRecord = findThisWeekRecord(record, startDate, endDate);
 
-        Map<DayOfWeek, List<RecordDetail>> recordsByDay = thisWeekRecord.stream()
-                .collect(Collectors.groupingBy(
-                        detail -> detail.getCreatedAt().getDayOfWeek()
-                ));
-
-        Map<OptionDetail, Long> optionFrequencyMap = new HashMap<>();
         String unit = recordUnitRepository.getByRecord(record).getUnit();
+        Map<OptionDetail, Long> optionFrequencyMap = new HashMap<>();
 
-        DayRecord monday = createDayRecord(recordsByDay.get(DayOfWeek.MONDAY), optionFrequencyMap, unit);
-        DayRecord tuesday = createDayRecord(recordsByDay.get(DayOfWeek.TUESDAY), optionFrequencyMap, unit);
-        DayRecord wednesday = createDayRecord(recordsByDay.get(DayOfWeek.WEDNESDAY), optionFrequencyMap, unit);
-        DayRecord thursday = createDayRecord(recordsByDay.get(DayOfWeek.THURSDAY), optionFrequencyMap, unit);
-        DayRecord friday = createDayRecord(recordsByDay.get(DayOfWeek.FRIDAY), optionFrequencyMap, unit);
-        DayRecord saturday = createDayRecord(recordsByDay.get(DayOfWeek.SATURDAY), optionFrequencyMap, unit);
-        DayRecord sunday = createDayRecord(recordsByDay.get(DayOfWeek.SUNDAY), optionFrequencyMap, unit);
+        List<OptionTypeRecordTrend.Data> data = startDate.toLocalDate().datesUntil(endDate.toLocalDate().plusDays(1))
+                .map(date -> {
+                    DayOfWeek dayOfWeek = date.getDayOfWeek();
+                    String week = dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.KOREAN);
 
-        int totalCount = thisWeekRecord.size();
-        OptionDetail mostFrequentOption = getMostFrequentOption(optionFrequencyMap);
+                    List<RecordDetail> recordsForDay = thisWeekRecord.stream()
+                            .filter(recordDetail -> recordDetail.getCreatedAt().toLocalDate().equals(date))
+                            .collect(Collectors.toList());
 
-        return OptionTypeRecordTrend.of(
-                monday, tuesday, wednesday, thursday, friday, saturday, sunday, totalCount, mostFrequentOption
-        );
-    }
-
-    private DayRecord createDayRecord(
-            List<RecordDetail> records,
-            Map<OptionDetail, Long> optionFrequencyMap,
-            String unit
-    ) {
-        if (records == null || records.isEmpty()) {
-            return new DayRecord(0, Collections.emptyList());
-        }
-
-        List<OptionDetail> optionDetails = records.stream()
-                .flatMap(record -> record.getRecordDetailOptions().stream())
-                .map(option -> {
-                    RecordOption recordOption = option.getRecordOption();
-                    return new OptionDetail(recordOption.getId(), recordOption.getOption() + unit);
+                    return createDataRecord(date, week, recordsForDay, optionFrequencyMap, unit);
                 })
                 .collect(Collectors.toList());
 
-        // 옵션 빈도 업데이트
-        for (OptionDetail option : optionDetails) {
-            optionFrequencyMap.put(option, optionFrequencyMap.getOrDefault(option, 0L) + 1);
+        int totalCount = thisWeekRecord.size();
+
+        OptionTypeRecordTrend.OptionDetail mostFrequentOption = getMostFrequentOption(optionFrequencyMap);
+
+        return OptionTypeRecordTrend.of(startDate.toLocalDate(), endDate.toLocalDate(), data, totalCount, mostFrequentOption);
+
+    }
+
+    private OptionTypeRecordTrend.Data createDataRecord(
+            LocalDate date,
+            String week,
+            List<RecordDetail> records,
+            Map<OptionTypeRecordTrend.OptionDetail, Long> optionFrequencyMap,
+            String unit
+    ) {
+        if (records == null || records.isEmpty()) {
+            return new OptionTypeRecordTrend.Data(date, week, Collections.emptyList(), 0);
         }
 
-        return new DayRecord(optionDetails.size(), optionDetails);
+        List<OptionTypeRecordTrend.OptionDetail> optionDetails = records.stream()
+                .flatMap(record -> record.getRecordDetailOptions().stream())
+                .map(option -> {
+                    RecordOption recordOption = option.getRecordOption();
+                    String optionValueWithUnit = recordOption.getOption() + unit;
+                    OptionTypeRecordTrend.OptionDetail optionDetail =
+                            new OptionTypeRecordTrend.OptionDetail(recordOption.getId(), optionValueWithUnit);
+
+                    optionFrequencyMap.put(optionDetail, optionFrequencyMap.getOrDefault(optionDetail, 0L) + 1);
+                    return optionDetail;
+                })
+                .collect(Collectors.toList());
+
+        return new OptionTypeRecordTrend.Data(date, week, optionDetails, optionDetails.size());
     }
 
     private OptionDetail getMostFrequentOption(Map<OptionDetail, Long> optionFrequencyMap) {
         return optionFrequencyMap.entrySet().stream()
                 .max(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey)
-                .orElse(new OptionDetail(null, "None"));
+                .orElse(new OptionTypeRecordTrend.OptionDetail(0, "NONE"));
     }
 
     public TextTypeRecordTrend getTextTypeRecordTrend(Integer recordId, Integer year, Integer month, Integer day) {
