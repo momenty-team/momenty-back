@@ -865,22 +865,26 @@ public class RecordService {
         }
 
         List<RecordDetail> thisWeekRecord = findThisWeekRecord(record, startDate, endDate);
-        Map<DayOfWeek, Long> countsByDay = getCountsByDayOfWeek(thisWeekRecord);
+
+        Map<LocalDate, Long> recordCountByDate = thisWeekRecord.stream()
+                .collect(Collectors.groupingBy(
+                        recordDetail -> recordDetail.getCreatedAt().toLocalDate(),
+                        Collectors.counting()
+                ));
+
+        List<TextTypeRecordTrend.Data> data = startDate.toLocalDate().datesUntil(endDate.toLocalDate().plusDays(1))
+                .map(date -> {
+                    String week = date.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREAN);
+                    int count = recordCountByDate.getOrDefault(date, 0L).intValue();
+                    return new TextTypeRecordTrend.Data(date, week, count);
+                })
+                .toList();
+
         int totalCount = thisWeekRecord.size();
         double averageCount = totalCount / 7.0;
         int roundedAverage = (int) Math.round(averageCount);
 
-        return TextTypeRecordTrend.of(
-                countsByDay.getOrDefault(DayOfWeek.MONDAY, 0L).intValue(),
-                countsByDay.getOrDefault(DayOfWeek.TUESDAY, 0L).intValue(),
-                countsByDay.getOrDefault(DayOfWeek.WEDNESDAY, 0L).intValue(),
-                countsByDay.getOrDefault(DayOfWeek.THURSDAY, 0L).intValue(),
-                countsByDay.getOrDefault(DayOfWeek.FRIDAY, 0L).intValue(),
-                countsByDay.getOrDefault(DayOfWeek.SATURDAY, 0L).intValue(),
-                countsByDay.getOrDefault(DayOfWeek.SUNDAY, 0L).intValue(),
-                totalCount,
-                roundedAverage
-        );
+        return TextTypeRecordTrend.of(startDate.toLocalDate(), endDate.toLocalDate(), data, totalCount, roundedAverage);
     }
 
     public String getRecordsSummary(Integer userId, Integer year, Integer month, Integer day) {
