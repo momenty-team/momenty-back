@@ -33,7 +33,7 @@ public record NumberTypeRecordTrend(
             String week,
 
             @Schema(description = "작성 횟수", example = "10", required = true)
-            Integer value
+            String value
     ) {}
 
     public static NumberTypeRecordTrend of(
