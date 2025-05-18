@@ -75,9 +75,12 @@
         public ResponseEntity<Void> addRecordDetail(
                 @PathVariable("record_id") Integer recordId,
                 @RequestBody RecordDetailAddRequest recordDetailAddRequest,
-                @Parameter(hidden = true) @UserId Integer userId
+                @Parameter(hidden = true) @UserId Integer userId,
+                @RequestParam Integer year,
+                @RequestParam Integer month,
+                @RequestParam Integer day
         ) {
-            recordService.addRecordDetail(recordId, recordDetailAddRequest);
+            recordService.addRecordDetail(recordId, recordDetailAddRequest, year, month, day);
             return ResponseEntity.status(HttpStatus.CREATED).build();
         }
 

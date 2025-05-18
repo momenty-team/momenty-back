@@ -20,7 +20,6 @@ import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -46,7 +45,6 @@ public class RecordDetail {
     @JoinColumn(name = "record_id")
     private UserRecord record;
 
-    @CreatedDate
     @Column(name = "created_at", columnDefinition = "TIMESTAMP", nullable = false)
     private LocalDateTime createdAt;
 
@@ -62,11 +60,13 @@ public class RecordDetail {
     private RecordDetail(
             String content,
             UserRecord record,
-            boolean isPublic
+            boolean isPublic,
+            LocalDateTime createdAt
     ) {
         this.content = content;
         this.record = record;
         this.isPublic = isPublic;
+        this.createdAt = createdAt;
     }
 
     public void update(String content, Boolean isPublic, Integer hour, Integer minute) {
