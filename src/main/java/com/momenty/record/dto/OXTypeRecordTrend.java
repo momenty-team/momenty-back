@@ -3,11 +3,19 @@ package com.momenty.record.dto;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.LocalDate;
+import java.util.List;
 
 @JsonNaming(SnakeCaseStrategy.class)
 public record OXTypeRecordTrend(
-        @Schema(description = "요일별 OX 횟수", required = true)
-        DayCounts dayCounts,
+        @Schema(description = "시작 날짜", required = true)
+        LocalDate startDate,
+
+        @Schema(description = "종료 날짜", required = true)
+        LocalDate endDate,
+
+        @Schema(description = "OX 데이터 리스트", required = true)
+        List<Data> data,
 
         @Schema(description = "총 OX 횟수", required = true)
         OXCount totalCounts,
@@ -17,27 +25,15 @@ public record OXTypeRecordTrend(
 ) {
 
     @JsonNaming(SnakeCaseStrategy.class)
-    public record DayCounts(
-            @Schema(description = "월요일에 기록한 OX 횟수", required = true)
-            OXCount monday,
+    public record Data(
+            @Schema(description = "날짜", example = "2025-04-01", required = true)
+            LocalDate date,
 
-            @Schema(description = "화요일에 기록한 OX 횟수", required = true)
-            OXCount tuesday,
+            @Schema(description = "요일", example = "월", required = true)
+            String week,
 
-            @Schema(description = "수요일에 기록한 OX 횟수", required = true)
-            OXCount wednesday,
-
-            @Schema(description = "목요일에 기록한 OX 횟수", required = true)
-            OXCount thursday,
-
-            @Schema(description = "금요일에 기록한 OX 횟수", required = true)
-            OXCount friday,
-
-            @Schema(description = "토요일에 기록한 OX 횟수", required = true)
-            OXCount saturday,
-
-            @Schema(description = "일요일에 기록한 OX 횟수", required = true)
-            OXCount sunday
+            @Schema(description = "OX 횟수", required = true)
+            OXCount oxCount
     ) {}
 
     @JsonNaming(SnakeCaseStrategy.class)
@@ -50,12 +46,9 @@ public record OXTypeRecordTrend(
     ) {}
 
     public static OXTypeRecordTrend of(
-            OXCount monday, OXCount tuesday, OXCount wednesday,
-            OXCount thursday, OXCount friday, OXCount saturday, OXCount sunday,
-            OXCount totalCounts,
-            Integer averageCount
+            LocalDate startDate, LocalDate endDate,
+            List<Data> data, OXCount totalCounts, Integer averageCount
     ) {
-        DayCounts dayCounts = new DayCounts(monday, tuesday, wednesday, thursday, friday, saturday, sunday);
-        return new OXTypeRecordTrend(dayCounts, totalCounts, averageCount);
+        return new OXTypeRecordTrend(startDate, endDate, data, totalCounts, averageCount);
     }
 }
