@@ -632,7 +632,6 @@ public class RecordService {
 
     private String generateTrendSummary(UserRecord record, List<RecordDetail> thisWeekRecord) {
         String prompt = buildPrompt(record, thisWeekRecord);
-        System.out.println(prompt);
         RecordAnalysisResponse response = aiClient.requestSummary(prompt).block();
         return Optional.ofNullable(response)
                 .map(RecordAnalysisResponse::result)
@@ -941,8 +940,6 @@ public class RecordService {
 
         String prompt = promptBuilder.toString();
 
-        System.out.println("기록 요약 prompt 내용: \n" + prompt);
-
         return Optional.ofNullable(aiClient.requestSummary(prompt).block())
                 .map(RecordAnalysisResponse::result)
                 .orElse("");
@@ -1034,8 +1031,6 @@ public class RecordService {
 
         promptBuilder.append("\n");
         String prompt = promptBuilder.toString();
-
-        System.out.println("prompt 내용: " + prompt);
 
         return Optional.ofNullable(aiClient.requestSummary(prompt).block())
                 .map(RecordAnalysisResponse::result)
