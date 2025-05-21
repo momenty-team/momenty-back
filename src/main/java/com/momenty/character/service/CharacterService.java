@@ -25,7 +25,6 @@ public class CharacterService {
             CharacterStatusRequest characterStatusRequest, Integer userId, Integer year, Integer month, Integer day
     ) {
         String recordsSummary = recordService.getRecordsSummary(userId, year, month, day);
-        System.out.println("기록 요약 요청 답변: \n" + recordsSummary);
 
         return requestCharacterStatus(characterStatusRequest.healthKit(), recordsSummary);
     }
