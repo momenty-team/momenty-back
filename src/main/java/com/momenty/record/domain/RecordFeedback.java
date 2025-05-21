@@ -45,7 +45,6 @@ public class RecordFeedback {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @CreatedDate
     @Column(name = "created_at", columnDefinition = "TIMESTAMP", nullable = false)
     private LocalDateTime createdAt;
 
@@ -58,11 +57,13 @@ public class RecordFeedback {
             String title,
             String level,
             String content,
-            User user
+            User user,
+            LocalDateTime createdAt
     ) {
         this.title = title;
         this.level = level;
         this.content = content;
         this.user = user;
+        this.createdAt = createdAt;
     }
 }

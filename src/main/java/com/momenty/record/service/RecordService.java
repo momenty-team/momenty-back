@@ -1004,7 +1004,7 @@ public class RecordService {
                         userInfo, recordSummary, recordFeedbackRequest.healthKit(), otherUsersRecordSummary
                 );
 
-        return recordFeedbackRepository.save(createRecordFeedback(user, result));
+        return recordFeedbackRepository.save(createRecordFeedback(user, result, targetDate));
     }
 
     private String requestGptForRecordFeedback(
@@ -1055,7 +1055,7 @@ public class RecordService {
                 ));
     }
 
-    private RecordFeedback createRecordFeedback(User user, String result) {
+    private RecordFeedback createRecordFeedback(User user, String result, LocalDate date) {
         if (result == null || result.isBlank()) {
             throw new GlobalException(AI_MAKE_BAD_RESPONSE.getMessage(), AI_MAKE_BAD_RESPONSE.getStatus());
         }
@@ -1084,6 +1084,7 @@ public class RecordService {
                 .level(level)
                 .content(feedback)
                 .user(user)
+                .createdAt(date.atTime(LocalTime.now()))
                 .build();
     }
 }
