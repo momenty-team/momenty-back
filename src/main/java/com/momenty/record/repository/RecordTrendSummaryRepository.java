@@ -2,6 +2,8 @@ package com.momenty.record.repository;
 
 import com.momenty.record.domain.RecordTrendSummary;
 import com.momenty.record.domain.UserRecord;
+import com.momenty.user.domain.Gender;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -21,12 +23,19 @@ public interface RecordTrendSummaryRepository extends Repository<RecordTrendSumm
     RecordTrendSummary save(RecordTrendSummary recordTrendSummary);
 
     @Query("""
-    SELECT rts FROM RecordTrendSummary rts
-    WHERE rts.user.id != :userId
+     SELECT rts FROM RecordTrendSummary rts
+    JOIN rts.record rec
+    JOIN rec.user u
+    WHERE u.id != :userId
+    AND u.gender = :gender
+    AND u.birthDate BETWEEN :minBirthDate AND :maxBirthDate
     ORDER BY rts.createdAt DESC
     """)
-    List<RecordTrendSummary> findRecentSummariesFromOtherUsers(
+    List<RecordTrendSummary> findRecentSummariesFromSimilarUsers(
             @Param("userId") Integer userId,
+            @Param("gender") Gender gender,
+            @Param("minBirthDate") LocalDate minBirthDate,
+            @Param("maxBirthDate") LocalDate maxBirthDate,
             Pageable pageable
     );
 

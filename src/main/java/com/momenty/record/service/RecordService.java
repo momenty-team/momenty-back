@@ -1,5 +1,6 @@
 package com.momenty.record.service;
 
+import static com.momenty.record.domain.RecordAnalysisMessage.ATYPICAL_OTHER_USERS_RECORD_FEEDBACK_PROMPT;
 import static com.momenty.record.domain.RecordAnalysisMessage.CONTENT_AND_PROMPT;
 import static com.momenty.record.domain.RecordAnalysisMessage.DATE_AND_CONTENT_SEPARATOR;
 import static com.momenty.record.domain.RecordAnalysisMessage.DATE_PATTERN;
@@ -987,8 +988,8 @@ public class RecordService {
         String recordSummary = requestGptForRecordSummary(separateByTopic(recordDetailMap));
 
         pageable = PageRequest.of(0, 500);
-        List<RecordTrendSummary> otherUsersRecordSummary =
-                recordTrendSummaryRepository.findRecentSummariesFromOtherUsers(userId, pageable);
+        List<RecordFeedback> otherUsersRecordFeedbacks = getSimilarUserFeedbacks(user, pageable);
+        String atypicalOtherUsersRecordFeedback = requestAtypicalOtherUsersRecordFeedback(otherUsersRecordFeedbacks);
 
         String gender = (user.getGender() != null) ? user.getGender().name() : "정보 없음";
         int age = (user.getBirthDate() != null) ? Period.between(user.getBirthDate(), LocalDate.now()).getYears() : 0;
@@ -998,39 +999,62 @@ public class RecordService {
 
         String result =
                 requestGptForRecordFeedback(
-                        userInfo, recordSummary, recordFeedbackRequest.healthKit(), otherUsersRecordSummary
+                        userInfo, recordSummary, recordFeedbackRequest.healthKit(), atypicalOtherUsersRecordFeedback
                 );
 
         return recordFeedbackRepository.save(createRecordFeedback(user, result, targetDate));
     }
 
-    private String requestGptForRecordFeedback(
-            String userInfo,
-            String recordSummary, String healthKit,
-            List<RecordTrendSummary> otherUsersRecordSummary
-    ) {
-        StringBuilder promptBuilder = new StringBuilder(RECORDS_FEEDBACK_PROMPT.getMessage());
+    private String requestAtypicalOtherUsersRecordFeedback(List<RecordFeedback> otherUsersRecordFeedbacks) {
+        StringBuilder promptBuilder = new StringBuilder(ATYPICAL_OTHER_USERS_RECORD_FEEDBACK_PROMPT.getMessage());
 
-        promptBuilder.append(userInfo).append("\n\n");
-
-        promptBuilder.append("사용자 기록 요약:\n")
-                .append(recordSummary)
-                .append("\n\n");
-
-        promptBuilder.append("헬스키트 정보:\n")
-                .append(healthKit)
-                .append("\n\n");
-
-        promptBuilder.append("다른 사용자들의 동향 데이터:\n");
-        for (RecordTrendSummary summary : otherUsersRecordSummary) {
-            String topic = summary.getRecord().getTitle();
-            String content = summary.getContent();
-            promptBuilder.append("주제: ").append(topic).append("\n")
-                    .append("- ").append(content).append("\n");
+        promptBuilder.append("다른 사용자들의 일주일간 기록과 헬스키트 피드백 데이터:\n");
+        for (RecordFeedback feedback : otherUsersRecordFeedbacks) {
+            String content = feedback.getContent();
+            promptBuilder.append("- ").append(content).append("\n");
         }
 
         promptBuilder.append("\n");
         String prompt = promptBuilder.toString();
+
+        return Optional.ofNullable(aiClient.requestSummary(prompt).block())
+                .map(RecordAnalysisResponse::result)
+                .orElse("");
+    }
+
+    private List<RecordFeedback> getSimilarUserFeedbacks(User currentUser, Pageable pageable) {
+        int userAge = Period.between(currentUser.getBirthDate(), LocalDate.now()).getYears();
+        int minAge = userAge - 5;
+        int maxAge = userAge + 5;
+
+        LocalDate minBirthDate = LocalDate.now().minusYears(maxAge);
+        LocalDate maxBirthDate = LocalDate.now().minusYears(minAge);
+
+        return recordFeedbackRepository.findRecentFeedbackFromSimilarUsers(
+                currentUser.getId(),
+                currentUser.getGender(),
+                minBirthDate,
+                maxBirthDate,
+                pageable
+        );
+    }
+
+    private String requestGptForRecordFeedback(
+            String userInfo,
+            String recordSummary, String healthKit,
+            String otherUsersRecordSummary
+    ) {
+        String prompt = userInfo + "\n\n"
+                + "사용자 기록 요약:\n"
+                + recordSummary
+                + "\n\n"
+                + "헬스키트 정보:\n"
+                + healthKit
+                + "\n\n"
+                + "다른 사용자들의 기록 요약:\n"
+                + otherUsersRecordSummary
+                + "\n\n"
+                + RECORDS_FEEDBACK_PROMPT.getMessage();
 
         return Optional.ofNullable(aiClient.requestSummary(prompt).block())
                 .map(RecordAnalysisResponse::result)
