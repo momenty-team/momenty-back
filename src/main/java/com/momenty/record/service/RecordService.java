@@ -71,12 +71,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -985,7 +987,7 @@ public class RecordService {
         Map<UserRecord, List<RecordDetail>> recordDetailMap = recordDetails.stream()
                 .collect(Collectors.groupingBy(RecordDetail::getRecord));
 
-        String recordSummary = requestGptForRecordSummary(separateByTopic(recordDetailMap));
+        String separateByTopicRecord = buildPromptRecords(separateByTopic(recordDetailMap));
 
         pageable = PageRequest.of(0, 500);
         List<RecordFeedback> otherUsersRecordFeedbacks = getSimilarUserFeedbacks(user, pageable);
@@ -999,10 +1001,34 @@ public class RecordService {
 
         String result =
                 requestGptForRecordFeedback(
-                        userInfo, recordSummary, recordFeedbackRequest.healthKit(), atypicalOtherUsersRecordFeedback
+                        userInfo, separateByTopicRecord, recordFeedbackRequest.healthKit(), atypicalOtherUsersRecordFeedback
                 );
 
         return recordFeedbackRepository.save(createRecordFeedback(user, result, targetDate));
+    }
+
+    private String buildPromptRecords(
+            Map<UserRecord, List<RecordDetailDto>> separateByTopicRecord
+    ) {
+        StringBuilder result = new StringBuilder();
+
+        for (Map.Entry<UserRecord, List<RecordDetailDto>> entry : separateByTopicRecord.entrySet()) {
+            UserRecord userRecord = entry.getKey();
+            List<RecordDetailDto> detailList = entry.getValue();
+
+            result.append("주제: ").append(userRecord.getTitle()).append("\n");
+
+            for (RecordDetailDto dto : detailList) {
+                result.append("- ")
+                        .append(dto.createdAt())
+                        .append(": ")
+                        .append(String.join(", ", dto.content()))
+                        .append("\n");
+            }
+
+            result.append("\n");
+        }
+        return result.toString();
     }
 
     private String requestAtypicalOtherUsersRecordFeedback(List<RecordFeedback> otherUsersRecordFeedbacks) {
@@ -1045,7 +1071,7 @@ public class RecordService {
             String otherUsersRecordSummary
     ) {
         String prompt = userInfo + "\n\n"
-                + "사용자 기록 요약:\n"
+                + "사용자 기록 데이터:\n"
                 + recordSummary
                 + "\n\n"
                 + "헬스키트 정보:\n"
@@ -1055,6 +1081,8 @@ public class RecordService {
                 + otherUsersRecordSummary
                 + "\n\n"
                 + RECORDS_FEEDBACK_PROMPT.getMessage();
+
+        log.info("요청한 프롬프트: {}", prompt);
 
         return Optional.ofNullable(aiClient.requestSummary(prompt).block())
                 .map(RecordAnalysisResponse::result)
