@@ -64,6 +64,12 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
+    @Column(nullable = false)
+    private Double height;
+
+    @Column(nullable = false)
+    private Double weight;
+
     @Column(name = "is_public")
     private boolean isPublic = false;
 
@@ -107,6 +113,8 @@ public class User {
             LocalDate birthDate,
             String profileImageUrl,
             Gender gender,
+            Double height,
+            Double weight,
             boolean isPublic
     ) {
         this.name = name;
@@ -115,6 +123,8 @@ public class User {
         this.profileImageUrl = profileImageUrl;
         this.birthDate = birthDate;
         this.gender = gender;
+        this.height = height;
+        this.weight = weight;
         this.isPublic = isPublic;
     }
 
@@ -136,12 +146,16 @@ public class User {
             String name,
             String nickname,
             LocalDate birthDate,
-            Gender gender
+            Gender gender,
+            Double height,
+            Double weight
     ) {
         this.name = name;
         this.nickname = nickname;
         this.birthDate = birthDate;
         this.gender = gender;
+        this.height = height;
+        this.weight = weight;
     }
 
     public void updateNotificationToken(
