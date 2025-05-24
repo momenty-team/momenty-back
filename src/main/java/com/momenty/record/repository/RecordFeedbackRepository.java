@@ -1,7 +1,6 @@
 package com.momenty.record.repository;
 
 import com.momenty.record.domain.RecordFeedback;
-import com.momenty.record.domain.RecordTrendSummary;
 import com.momenty.user.domain.Gender;
 import com.momenty.user.domain.User;
 import java.time.LocalDate;
@@ -37,4 +36,5 @@ public interface RecordFeedbackRepository extends Repository<RecordFeedback, Int
             Pageable pageable
     );
 
+    List<RecordFeedback> findAllByUser(User user);
 }
