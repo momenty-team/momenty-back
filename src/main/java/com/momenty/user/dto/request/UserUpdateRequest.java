@@ -16,6 +16,10 @@ public record UserUpdateRequest(
 
         String gender,
 
+        Double height,
+
+        Double weight,
+
         Boolean isPublic,
 
         String profileImageUrl
@@ -26,6 +30,8 @@ public record UserUpdateRequest(
                 (this.nickname != null && !this.nickname.isEmpty()) ? this.nickname : user.getNickname(),
                 (this.birthDate != null) ? this.birthDate : user.getBirthDate(),
                 (this.gender != null && !this.gender.isEmpty()) ? Gender.valueOf(this.gender.toUpperCase()) : user.getGender(),
+                (this.height != null) ? this.height : user.getHeight(),
+                (this.weight != null) ? this.weight : user.getWeight(),
                 (this.isPublic != null) ? this.isPublic : user.isPublic(),
                 (this.profileImageUrl != null) ? this.profileImageUrl : user.getProfileImageUrl()
         );

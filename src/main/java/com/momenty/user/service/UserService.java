@@ -95,7 +95,12 @@ public class UserService {
             Integer userId
     ) {
         User existingUser = userRepository.getById(userId);
-        validNicknameDuplication(userUpdateRequest.nickname());
+
+        String nickname = userUpdateRequest.nickname();
+        if (nickname != null) {
+            validNicknameDuplication(nickname);
+        }
+
         userUpdateRequest.applyTo(existingUser);
         return existingUser;
     }
