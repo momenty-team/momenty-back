@@ -17,6 +17,7 @@
     import com.momenty.record.dto.RecordDetailsResponse;
     import com.momenty.record.dto.RecordFeedbackRequest;
     import com.momenty.record.dto.RecordFeedbackResponse;
+    import com.momenty.record.dto.RecordFeedbacksResponse;
     import com.momenty.record.dto.RecordOptionAddRequest;
     import com.momenty.record.dto.RecordOptionUpdateRequest;
     import com.momenty.record.dto.RecordOptionsResponse;
@@ -310,6 +311,16 @@
                             year, month, day,
                             userId
                             )
+                    ));
+        }
+
+        @GetMapping("/feedbacks")
+        public ResponseEntity<RecordFeedbacksResponse> getRecordFeedbacks(
+                @Parameter(hidden = true) @UserId Integer userId
+        ) {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(RecordFeedbacksResponse.of(
+                       recordService.getRecordFeedbacks(userId)
                     ));
         }
     }

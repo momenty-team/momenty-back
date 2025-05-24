@@ -1134,4 +1134,9 @@ public class RecordService {
                 .createdAt(date.atTime(LocalTime.now()))
                 .build();
     }
+
+    public List<RecordFeedback> getRecordFeedbacks(Integer userId) {
+        User user = userRepository.getById(userId);
+        return recordFeedbackRepository.findAllByUser(user);
+    }
 }
