@@ -132,12 +132,16 @@ public class User {
             String nickname,
             LocalDate birthDate,
             Gender gender,
+            Double height,
+            Double weight,
             Boolean isPublic,
             String profileImageUrl
     ) {
         this.nickname = nickname;
         this.birthDate = birthDate;
         this.gender = gender;
+        this.height = height;
+        this.weight = weight;
         this.isPublic = isPublic;
         this.profileImageUrl = profileImageUrl;
     }
