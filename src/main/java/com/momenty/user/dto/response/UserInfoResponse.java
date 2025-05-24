@@ -34,6 +34,12 @@ public record UserInfoResponse(
         @Schema(description = "사용자 성별", example = "male", required = true)
         Gender gender,
 
+        @Schema(description = "사용자 키", example = "200", required = true)
+        Double height,
+
+        @Schema(description = "사용자 몸무게", example = "99.9", required = true)
+        Double weight,
+
         @Schema(description = "사용자 기록 공개 여부", example = "true", required = true)
         boolean isPublic,
 
@@ -63,6 +69,8 @@ public record UserInfoResponse(
                 user.getEmail(),
                 user.getProfileImageUrl(),
                 user.getGender(),
+                user.getHeight(),
+                user.getWeight(),
                 user.isPublic(),
                 user.getFollowers().size(),
                 user.getFollowings().size(),
