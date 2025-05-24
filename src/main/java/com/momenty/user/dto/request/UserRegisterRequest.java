@@ -21,14 +21,18 @@ public record UserRegisterRequest(
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
         LocalDate birthDate,
 
-        String gender
+        String gender,
+        Double height,
+        Double weight
 ) {
     public void applyTo(User user) {
         user.updateProfileToRegister(
                 extractNameFromFullName(firstName, lastName),
                 this.nickname,
                 this.birthDate,
-                Gender.valueOf(this.gender.toUpperCase())
+                Gender.valueOf(this.gender.toUpperCase()),
+                this.height,
+                this.weight
         );
     }
 
@@ -37,6 +41,8 @@ public record UserRegisterRequest(
                 .nickname(this.nickname)
                 .birthDate(this.birthDate)
                 .gender(Gender.valueOf(this.gender.toUpperCase()))
+                .height(this.height)
+                .weight(this.weight)
                 .build();
     }
 
