@@ -891,7 +891,7 @@ public class RecordService {
         return TextTypeRecordTrend.of(startDate.toLocalDate(), endDate.toLocalDate(), data, totalCount, roundedAverage);
     }
 
-    public String getRecordsSummary(Integer userId, Integer year, Integer month, Integer day) {
+    public String getTodayRecordsPrompt(Integer userId, Integer year, Integer month, Integer day) {
         Pair<LocalDateTime, LocalDateTime> dateFilter = makeDateFilter(year, month, day);
         LocalDateTime startDate = dateFilter.getLeft();
         LocalDateTime endDate = dateFilter.getRight();
@@ -923,29 +923,7 @@ public class RecordService {
                         }
                 ));
 
-        return requestGptForRecordSummary(recordDetailDtoMap);
-    }
-
-    private String requestGptForRecordSummary(Map<UserRecord, List<RecordDetailDto>> recordDetailDtoMap) {
-        StringBuilder promptBuilder = new StringBuilder(RECORDS_SUMMARY_PROMPT.getMessage());
-
-        for (Map.Entry<UserRecord, List<RecordDetailDto>> entry : recordDetailDtoMap.entrySet()) {
-            UserRecord record = entry.getKey();
-            String topic = record.getTitle();
-            List<RecordDetailDto> details = entry.getValue();
-
-            promptBuilder.append("주제: ").append(topic).append("\n");
-            for (RecordDetailDto detail : details) {
-                promptBuilder.append("- ").append(detail.content()).append("\n");
-            }
-            promptBuilder.append("\n");
-        }
-
-        String prompt = promptBuilder.toString();
-
-        return Optional.ofNullable(aiClient.requestSummary(prompt).block())
-                .map(RecordAnalysisResponse::result)
-                .orElse("");
+        return buildPromptRecords(recordDetailDtoMap);
     }
 
     private List<RecordDetailDto> toRecordDetailDtos(UserRecord record, List<RecordDetail> details) {
@@ -1099,8 +1077,6 @@ public class RecordService {
                 + otherUsersRecordSummary
                 + "\n\n"
                 + RECORDS_FEEDBACK_PROMPT.getMessage();
-
-        log.info("요청한 프롬프트: {}", prompt);
 
         return Optional.ofNullable(aiClient.requestSummary(prompt).block())
                 .map(RecordAnalysisResponse::result)

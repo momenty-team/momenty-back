@@ -24,18 +24,18 @@ public class CharacterService {
     public String getCharacterStatus(
             CharacterStatusRequest characterStatusRequest, Integer userId, Integer year, Integer month, Integer day
     ) {
-        String recordsSummary = recordService.getRecordsSummary(userId, year, month, day);
+        String todayRecordsPrompt = recordService.getTodayRecordsPrompt(userId, year, month, day);
 
-        return requestCharacterStatus(characterStatusRequest.healthKit(), recordsSummary);
+        return requestCharacterStatus(characterStatusRequest.healthKit(), todayRecordsPrompt);
     }
 
-    private String requestCharacterStatus(String healthKit, String recordsSummary) {
+    private String requestCharacterStatus(String healthKit, String todayRecordsPrompt) {
         String prompt =
                 USER_DATA_INFO.getMessage()
                 + "HealthKit 정보:\n"
                 + healthKit + "\n\n"
-                + "사용자의 기록 데이터들을 주제별로 요약한 정보:\n"
-                + recordsSummary + "\n\n"
+                + "사용자의 기록 데이터:\n"
+                + todayRecordsPrompt + "\n"
                 + CHOOSE_STATUS.getMessage()
                 + CHARACTER_STATUS_OPTIONS.getMessage();
 
