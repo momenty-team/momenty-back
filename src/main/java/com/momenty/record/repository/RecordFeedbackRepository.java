@@ -1,5 +1,6 @@
 package com.momenty.record.repository;
 
+import com.momenty.record.domain.RecordDetail;
 import com.momenty.record.domain.RecordFeedback;
 import com.momenty.user.domain.Gender;
 import com.momenty.user.domain.User;
@@ -45,6 +46,9 @@ public interface RecordFeedbackRepository extends Repository<RecordFeedback, Int
             @Param("maxBirthDate") LocalDate maxBirthDate
     );
 
+    List<RecordFeedback> findAllByUserAndCreatedAtBetweenOrderByCreatedAtDesc(
+            User user, LocalDateTime startDate, LocalDateTime endDate
+    );
 
     List<RecordFeedback> findAllByUser(User user);
 }

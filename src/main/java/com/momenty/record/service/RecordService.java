@@ -988,6 +988,13 @@ public class RecordService {
                 .collect(Collectors.groupingBy(RecordDetail::getRecord));
 
         String separateByTopicRecord = buildPromptRecords(separateByTopic(recordDetailMap));
+        List<RecordFeedback> recordFeedbacks =
+                recordFeedbackRepository.findAllByUserAndCreatedAtBetweenOrderByCreatedAtDesc(
+                        user,
+                        targetDate.minusDays(14).atStartOfDay(),
+                        targetDate.atTime(LocalTime.MAX)
+                );
+        String pastTwoWeeksFeedbacks = buildPromptPastTwoWeeksFeedbacks(recordFeedbacks);
 
         List<RecordFeedback> otherUsersRecordFeedbacks = getSimilarUserFeedbacks(user);
         String atypicalOtherUsersRecordFeedback = buildPromptOtherUsersRecordFeedback(otherUsersRecordFeedbacks);
@@ -1000,10 +1007,27 @@ public class RecordService {
 
         String result =
                 requestGptForRecordFeedback(
-                        userInfo, separateByTopicRecord, recordFeedbackRequest.healthKit(), atypicalOtherUsersRecordFeedback
+                        userInfo, separateByTopicRecord, recordFeedbackRequest.healthKit(), pastTwoWeeksFeedbacks,
+                        atypicalOtherUsersRecordFeedback
                 );
 
         return recordFeedbackRepository.save(createRecordFeedback(user, result, targetDate));
+    }
+
+    private String buildPromptPastTwoWeeksFeedbacks(List<RecordFeedback> recordFeedbacks) {
+        StringBuilder promptBuilder = new StringBuilder("사용자의 지난 2주간 피드백 데이터:\n");
+
+        if (recordFeedbacks.isEmpty()) {
+            promptBuilder.append("NONE").append("\n");
+            return promptBuilder.toString();
+        }
+
+        for (RecordFeedback feedback : recordFeedbacks) {
+            String content = feedback.getContent();
+            promptBuilder.append(feedback.getCreatedAt()).append(": ").append(content).append("\n");
+        }
+
+        return promptBuilder.toString();
     }
 
     private String buildPromptRecords(
@@ -1060,6 +1084,7 @@ public class RecordService {
     private String requestGptForRecordFeedback(
             String userInfo,
             String recordSummary, String healthKit,
+            String pastTwoWeeksFeedbacks,
             String otherUsersRecordSummary
     ) {
         String prompt = userInfo + "\n\n"
@@ -1068,6 +1093,8 @@ public class RecordService {
                 + "\n\n"
                 + "헬스키트 정보:\n"
                 + healthKit
+                + "\n\n"
+                + pastTwoWeeksFeedbacks
                 + "\n\n"
                 + otherUsersRecordSummary
                 + "\n\n"
