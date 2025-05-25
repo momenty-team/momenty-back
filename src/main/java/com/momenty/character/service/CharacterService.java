@@ -39,6 +39,8 @@ public class CharacterService {
                 + CHOOSE_STATUS.getMessage()
                 + CHARACTER_STATUS_OPTIONS.getMessage();
 
+        System.out.println(prompt);
+
         return Optional.ofNullable(aiClient.requestSummary(prompt).block())
                 .map(RecordAnalysisResponse::result)
                 .orElse("응답을 받을 수 없습니다.");

@@ -1,17 +1,14 @@
 package com.momenty.record.service;
 
-import static com.momenty.record.domain.RecordAnalysisMessage.ATYPICAL_OTHER_USERS_RECORD_FEEDBACK_PROMPT;
 import static com.momenty.record.domain.RecordAnalysisMessage.CONTENT_AND_PROMPT;
 import static com.momenty.record.domain.RecordAnalysisMessage.DATE_AND_CONTENT_SEPARATOR;
 import static com.momenty.record.domain.RecordAnalysisMessage.DATE_PATTERN;
 import static com.momenty.record.domain.RecordAnalysisMessage.PROMPT;
 import static com.momenty.record.domain.RecordAnalysisMessage.RECORDS_FEEDBACK_PROMPT;
-import static com.momenty.record.domain.RecordAnalysisMessage.RECORDS_SUMMARY_PROMPT;
 import static com.momenty.record.domain.RecordAnalysisMessage.RECORD_CONTENT;
 import static com.momenty.record.domain.RecordAnalysisMessage.TREND_PROMPT;
 import static com.momenty.record.exception.RecordExceptionMessage.*;
 
-import com.momenty.location.domain.Location;
 import com.momenty.location.service.LocationService;
 import com.momenty.record.domain.RecordFeedback;
 import com.momenty.record.domain.UserRecordAvgTime;
@@ -1021,23 +1018,33 @@ public class RecordService {
             Map<UserRecord, List<RecordDetailDto>> separateByTopicRecord
     ) {
         StringBuilder result = new StringBuilder();
+        result.append("[");
+
+        int topicCount = 0;
+        int topicSize = separateByTopicRecord.size();
 
         for (Map.Entry<UserRecord, List<RecordDetailDto>> entry : separateByTopicRecord.entrySet()) {
             UserRecord userRecord = entry.getKey();
             List<RecordDetailDto> detailList = entry.getValue();
 
-            result.append("주제: ").append(userRecord.getTitle()).append("\n");
+            result.append("{");
+            result.append("\"title\":\"").append(userRecord.getTitle()).append("\",");
+            result.append("\"records\":[");
 
-            for (RecordDetailDto dto : detailList) {
-                result.append("- ")
-                        .append(dto.createdAt())
-                        .append(": ")
-                        .append(String.join(", ", dto.content()))
-                        .append("\n");
+            for (int i = 0; i < detailList.size(); i++) {
+                RecordDetailDto dto = detailList.get(i);
+                result.append("{");
+                result.append("\"content\":\"").append(String.join(", ", dto.content())).append("\",");
+                result.append("\"createdAt\":\"").append(dto.createdAt()).append("\"");
+                result.append("}");
+                if (i < detailList.size() - 1) result.append(",");
             }
 
-            result.append("\n");
+            result.append("]}");
+            if (++topicCount < topicSize) result.append(",");
         }
+
+        result.append("]");
         return result.toString();
     }
 
