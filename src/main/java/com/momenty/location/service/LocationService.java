@@ -8,7 +8,11 @@ import com.momenty.user.repository.UserRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,5 +46,27 @@ public class LocationService {
         User user = userRepository.getById(userId);
 
         return locationRepository.findByUserAndCreatedAtBetweenOrderByCreatedAtDesc(user, startDate, endDate);
+    }
+
+    public String getPastWeeksLocations(User user, LocalDateTime startDate, LocalDateTime endDate) {
+        List<Location> locations =
+                locationRepository.findByUserAndCreatedAtBetweenOrderByCreatedAtDesc(user, startDate, endDate);
+
+        return buildPromptLocations(locations);
+    }
+
+    private String buildPromptLocations(List<Location> locations) {
+        StringBuilder result = new StringBuilder();
+
+        for (Location location : locations) {
+            result.append("{")
+                    .append("\"latitude\": ").append(location.getLatitude()).append(", ")
+                    .append("\"longitude\": ").append(location.getLongitude()).append(", ")
+                    .append("\"createdAt\": \"").append(location.getCreatedAt()).append("\"")
+                    .append("}")
+                    .append("\n");
+        }
+
+        return result.toString().trim();
     }
 }

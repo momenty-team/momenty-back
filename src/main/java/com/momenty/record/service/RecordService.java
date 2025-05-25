@@ -11,6 +11,8 @@ import static com.momenty.record.domain.RecordAnalysisMessage.RECORD_CONTENT;
 import static com.momenty.record.domain.RecordAnalysisMessage.TREND_PROMPT;
 import static com.momenty.record.exception.RecordExceptionMessage.*;
 
+import com.momenty.location.domain.Location;
+import com.momenty.location.service.LocationService;
 import com.momenty.record.domain.RecordFeedback;
 import com.momenty.record.domain.UserRecordAvgTime;
 import com.momenty.record.dto.RecordFeedbackRequest;
@@ -96,6 +98,7 @@ public class RecordService {
     private final UserRecordAvgTimeRepository avgTimeRepository;
     private final RecordFeedbackRepository recordFeedbackRepository;
     private final AiClient aiClient;
+    private final LocationService locationService;
 
     @Transactional
     public void addRecord(RecordAddRequest recordAddRequest, Integer userId) {
@@ -959,6 +962,7 @@ public class RecordService {
             return recordFeedback.get();
         }
 
+        // 사용자의 7일간 기록 데이터
         Pageable pageable = PageRequest.of(0, 1000);
         List<RecordDetail> recordDetails = recordDetailRepository.findRecentDetails(userId, startDate, endDate, pageable);
 
@@ -966,6 +970,8 @@ public class RecordService {
                 .collect(Collectors.groupingBy(RecordDetail::getRecord));
 
         String separateByTopicRecord = buildPromptRecords(separateByTopic(recordDetailMap));
+
+        // 사용자의 2주간 피드백 데이터
         List<RecordFeedback> recordFeedbacks =
                 recordFeedbackRepository.findAllByUserAndCreatedAtBetweenOrderByCreatedAtDesc(
                         user,
@@ -974,19 +980,22 @@ public class RecordService {
                 );
         String pastTwoWeeksFeedbacks = buildPromptPastTwoWeeksFeedbacks(recordFeedbacks);
 
+        // 사용자의 7일간 위치 데이터
+        String locationsInfo = locationService.getPastWeeksLocations(user, startDate, endDate);
+
+        // 비교군 데이터
         List<RecordFeedback> otherUsersRecordFeedbacks = getSimilarUserFeedbacks(user);
         String atypicalOtherUsersRecordFeedback = buildPromptOtherUsersRecordFeedback(otherUsersRecordFeedbacks);
 
+        // 사용자 기본 정보
         String gender = (user.getGender() != null) ? user.getGender().name() : "정보 없음";
         int age = (user.getBirthDate() != null) ? Period.between(user.getBirthDate(), LocalDate.now()).getYears() : 0;
-
         String userInfo = "성별: " + gender + ", 나이: " + age + ", 닉네임: " + user.getNickname();
-
 
         String result =
                 requestGptForRecordFeedback(
                         userInfo, separateByTopicRecord, recordFeedbackRequest.healthKit(), pastTwoWeeksFeedbacks,
-                        atypicalOtherUsersRecordFeedback
+                        locationsInfo, atypicalOtherUsersRecordFeedback
                 );
 
         return recordFeedbackRepository.save(createRecordFeedback(user, result, targetDate));
@@ -1063,6 +1072,7 @@ public class RecordService {
             String userInfo,
             String recordSummary, String healthKit,
             String pastTwoWeeksFeedbacks,
+            String locationsInfo,
             String otherUsersRecordSummary
     ) {
         String prompt = userInfo + "\n\n"
@@ -1074,9 +1084,14 @@ public class RecordService {
                 + "\n\n"
                 + pastTwoWeeksFeedbacks
                 + "\n\n"
+                + "사용자 일주일간 위치 데이터:\n"
+                + locationsInfo
+                + "\n\n"
                 + otherUsersRecordSummary
                 + "\n\n"
                 + RECORDS_FEEDBACK_PROMPT.getMessage();
+
+        System.out.println("prompt: " + prompt);
 
         return Optional.ofNullable(aiClient.requestSummary(prompt).block())
                 .map(RecordAnalysisResponse::result)
