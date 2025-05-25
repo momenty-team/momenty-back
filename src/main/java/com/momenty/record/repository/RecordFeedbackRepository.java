@@ -20,21 +20,31 @@ public interface RecordFeedbackRepository extends Repository<RecordFeedback, Int
 
     RecordFeedback save(RecordFeedback recordFeedback);
 
-    @Query("""
-    SELECT rf FROM RecordFeedback rf
-    JOIN rf.user u
-    WHERE u.id != :userId
-      AND u.gender = :gender
-      AND u.birthDate BETWEEN :minBirthDate AND :maxBirthDate
-    ORDER BY rf.createdAt DESC
-    """)
+    @Query(
+            value = """
+        SELECT rf.*
+        FROM record_feedback rf
+        JOIN user u ON rf.user_id = u.id
+        INNER JOIN (
+            SELECT user_id, MAX(created_at) AS max_created_at
+            FROM record_feedback
+            WHERE user_id != :userId
+            GROUP BY user_id
+        ) latest ON rf.user_id = latest.user_id AND rf.created_at = latest.max_created_at
+        WHERE u.gender = :gender
+          AND u.birth_date BETWEEN :minBirthDate AND :maxBirthDate
+        ORDER BY rf.created_at DESC
+        LIMIT 100
+        """,
+            nativeQuery = true
+    )
     List<RecordFeedback> findRecentFeedbackFromSimilarUsers(
             @Param("userId") Integer userId,
-            @Param("gender") Gender gender,
+            @Param("gender") String gender,
             @Param("minBirthDate") LocalDate minBirthDate,
-            @Param("maxBirthDate") LocalDate maxBirthDate,
-            Pageable pageable
+            @Param("maxBirthDate") LocalDate maxBirthDate
     );
+
 
     List<RecordFeedback> findAllByUser(User user);
 }

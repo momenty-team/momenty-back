@@ -989,9 +989,8 @@ public class RecordService {
 
         String separateByTopicRecord = buildPromptRecords(separateByTopic(recordDetailMap));
 
-        pageable = PageRequest.of(0, 500);
-        List<RecordFeedback> otherUsersRecordFeedbacks = getSimilarUserFeedbacks(user, pageable);
-        String atypicalOtherUsersRecordFeedback = requestAtypicalOtherUsersRecordFeedback(otherUsersRecordFeedbacks);
+        List<RecordFeedback> otherUsersRecordFeedbacks = getSimilarUserFeedbacks(user);
+        String atypicalOtherUsersRecordFeedback = buildPromptOtherUsersRecordFeedback(otherUsersRecordFeedbacks);
 
         String gender = (user.getGender() != null) ? user.getGender().name() : "정보 없음";
         int age = (user.getBirthDate() != null) ? Period.between(user.getBirthDate(), LocalDate.now()).getYears() : 0;
@@ -1031,24 +1030,18 @@ public class RecordService {
         return result.toString();
     }
 
-    private String requestAtypicalOtherUsersRecordFeedback(List<RecordFeedback> otherUsersRecordFeedbacks) {
-        StringBuilder promptBuilder = new StringBuilder(ATYPICAL_OTHER_USERS_RECORD_FEEDBACK_PROMPT.getMessage());
+    private String buildPromptOtherUsersRecordFeedback(List<RecordFeedback> otherUsersRecordFeedbacks) {
+        StringBuilder promptBuilder = new StringBuilder("다른 사용자들의 피드백 데이터:\n");
 
-        promptBuilder.append("다른 사용자들의 일주일간 기록과 헬스키트 피드백 데이터:\n");
         for (RecordFeedback feedback : otherUsersRecordFeedbacks) {
             String content = feedback.getContent();
             promptBuilder.append("- ").append(content).append("\n");
         }
 
-        promptBuilder.append("\n");
-        String prompt = promptBuilder.toString();
-
-        return Optional.ofNullable(aiClient.requestSummary(prompt).block())
-                .map(RecordAnalysisResponse::result)
-                .orElse("");
+        return promptBuilder.toString();
     }
 
-    private List<RecordFeedback> getSimilarUserFeedbacks(User currentUser, Pageable pageable) {
+    private List<RecordFeedback> getSimilarUserFeedbacks(User currentUser) {
         int userAge = Period.between(currentUser.getBirthDate(), LocalDate.now()).getYears();
         int minAge = userAge - 5;
         int maxAge = userAge + 5;
@@ -1058,10 +1051,9 @@ public class RecordService {
 
         return recordFeedbackRepository.findRecentFeedbackFromSimilarUsers(
                 currentUser.getId(),
-                currentUser.getGender(),
+                currentUser.getGender().name(),
                 minBirthDate,
-                maxBirthDate,
-                pageable
+                maxBirthDate
         );
     }
 
@@ -1077,7 +1069,6 @@ public class RecordService {
                 + "헬스키트 정보:\n"
                 + healthKit
                 + "\n\n"
-                + "다른 사용자들의 기록 요약:\n"
                 + otherUsersRecordSummary
                 + "\n\n"
                 + RECORDS_FEEDBACK_PROMPT.getMessage();
