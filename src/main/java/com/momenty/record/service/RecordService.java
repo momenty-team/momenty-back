@@ -634,7 +634,8 @@ public class RecordService {
     }
 
     private String generateTrendSummary(UserRecord record, List<RecordDetail> thisWeekRecord) {
-        String prompt = buildPrompt(record, thisWeekRecord);
+        String prompt = buildPromptTrendSummary(record, thisWeekRecord);
+
         RecordAnalysisResponse response = aiClient.requestSummary(prompt).block();
         return Optional.ofNullable(response)
                 .map(RecordAnalysisResponse::result)
@@ -654,7 +655,7 @@ public class RecordService {
                 ));
     }
 
-    private String buildPrompt(UserRecord record, List<RecordDetail> details) {
+    private String buildPromptTrendSummary(UserRecord record, List<RecordDetail> details) {
         List<RecordDetailDto> recordDetailDtos = getRecordDetailDtos(record, details);
         StringBuilder prompt = writeRecordDetailPrompt(record, recordDetailDtos, 70);
 
@@ -665,23 +666,27 @@ public class RecordService {
 
     private StringBuilder writeRecordDetailPrompt(UserRecord record, List<RecordDetailDto> recordDetailDtos, Integer maxSize) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_PATTERN.getMessage());
+        StringBuilder result = new StringBuilder();
 
-        StringBuilder fullContent = new StringBuilder();
+        result.append("{")
+                .append("\"title\":\"").append(record.getTitle()).append("\",")
+                .append("\"records\":[");
 
-        String title = record.getTitle();
         String recordContent = recordDetailDtos.stream()
                 .sorted(Comparator.comparing(RecordDetailDto::createdAt).reversed())
                 .limit(maxSize)
-                .map(detail -> detail.createdAt().format(formatter)
-                        + DATE_AND_CONTENT_SEPARATOR.getMessage()
-                        + String.join(", ", detail.content()))
-                .collect(Collectors.joining(CONTENT_AND_PROMPT.getMessage()));
+                .map(detail -> String.format(
+                        "{\"createdAt\":\"%s\",\"content\":[%s]}",
+                        detail.createdAt().format(formatter),
+                        detail.content().stream()
+                                .map(content -> "\"" + content + "\"")
+                                .collect(Collectors.joining(","))
+                ))
+                .collect(Collectors.joining(","));
 
-        fullContent.append("[").append(title).append("]").append("\n")
-                .append(recordContent)
-                .append("\n\n");
+        result.append(recordContent).append("]}");
 
-        return fullContent;
+        return result;
     }
 
     @Transactional
@@ -704,6 +709,7 @@ public class RecordService {
                 .record(record)
                 .content(summary)
                 .user(record.getUser())
+                .createdAt(targetDate.atTime(LocalTime.now()))
                 .build();
         return recordTrendSummaryRepository.save(recordTrendSummary);
     }

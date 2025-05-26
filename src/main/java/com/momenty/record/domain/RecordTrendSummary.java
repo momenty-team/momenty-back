@@ -43,7 +43,6 @@ public class RecordTrendSummary {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @CreatedDate
     @Column(name = "created_at", columnDefinition = "TIMESTAMP", nullable = false)
     private LocalDateTime createdAt;
 
@@ -55,10 +54,12 @@ public class RecordTrendSummary {
     private RecordTrendSummary(
             String content,
             UserRecord record,
-            User user
+            User user,
+            LocalDateTime createdAt
     ) {
         this.content = content;
         this.record = record;
         this.user = user;
+        this.createdAt = createdAt;
     }
 }
